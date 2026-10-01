@@ -11,7 +11,7 @@ import { PracticeRecommendation } from '../components/history/PracticeRecommenda
 export function Dashboard() {
   const navigate = useNavigate();
 
-  const { history: historyRecords, securityControls: controlsState, learningProfile } = useCyberShadow();
+  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture } = useCyberShadow();
 
   const activeCount = Object.values(controlsState).filter(Boolean).length;
   const total = Object.keys(controlsState).length;
@@ -170,7 +170,48 @@ export function Dashboard() {
         </Panel>
         
         <div className="lg:col-span-2 flex flex-col gap-6">
-            {primaryRecommendation && (
+          {/* Posture Snapshot */}
+          <Panel className="flex flex-col relative overflow-hidden bg-[#0b1120] border-slate-800/80 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[11px] font-bold text-orange-500 uppercase tracking-[0.15em]">SECURITY POSTURE SNAPSHOT</h2>
+              <Button variant="ghost" size="sm" className="text-[10px] uppercase tracking-widest text-orange-500 hover:text-orange-400" onClick={() => navigate('/security')}>
+                Full Details
+              </Button>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-6">
+              {securityPosture.totalAnalyzedSimulations === 0 ? (
+                 <div className="text-slate-500 text-xs italic flex-1 py-4">
+                   No simulation data yet. Run a simulation to build posture.
+                 </div>
+              ) : (
+                 <>
+                   <div className="flex-1 flex flex-col justify-center pb-2 sm:pb-0 sm:border-r border-slate-800/80 pr-4">
+                     <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mb-1">Recurring Weaknesses</span>
+                     <span className="text-2xl font-bold text-orange-400">{securityPosture.recurringWeaknesses.length}</span>
+                   </div>
+                   <div className="flex-1 flex flex-col justify-center pb-2 sm:pb-0 sm:border-r border-slate-800/80 pr-4">
+                     <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mb-1">Active Defenses</span>
+                     <span className="text-2xl font-bold text-green-400">{securityPosture.defenseCoverage.filter(d => d.status === 'ACTIVE' || d.status === 'STRONG').length}</span>
+                   </div>
+                   <div className="flex-1 flex flex-col justify-center">
+                     <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mb-2">Simulation Trend</span>
+                     <div>
+                       <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-slate-900 ${
+                          securityPosture.recentTrend === 'IMPROVING' ? 'text-green-500' :
+                          securityPosture.recentTrend === 'NEEDS PRACTICE' ? 'text-orange-500' :
+                          securityPosture.recentTrend === 'MIXED' ? 'text-amber-500' : 'text-slate-500'
+                       }`}>
+                         {securityPosture.recentTrend}
+                       </span>
+                     </div>
+                   </div>
+                 </>
+              )}
+            </div>
+          </Panel>
+
+          {primaryRecommendation && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[220px]">
                 <Panel className="bg-gradient-to-br from-[#0b1120] to-violet-950/10 border-violet-900/30 p-6 flex flex-col h-full overflow-hidden">
                   <h3 className="text-[11px] font-bold text-violet-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">

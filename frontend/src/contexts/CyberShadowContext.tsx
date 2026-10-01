@@ -7,6 +7,8 @@ import type { HistoryRecord, LearningProgressMetrics } from '../types/history';
 import type { LearningProfile } from '../types/learning';
 import { MOCK_HISTORY_RECORDS, MOCK_LEARNING_PROGRESS } from '../data/historyData';
 import { initializeLearningProfile, updateLearningProfile, SCENARIO_TO_SKILLS } from '../engine/learningEngine';
+import { buildSecurityPosture } from '../engine/securityPostureEngine';
+import type { SecurityPosture } from '../types/security-posture';
 
 export type SecurityControlsState = Record<ControlId, boolean>;
 
@@ -27,6 +29,7 @@ export interface CyberShadowContextValue {
   history: HistoryRecord[];
   learningProgress: LearningProgressMetrics;
   learningProfile: LearningProfile;
+  securityPosture: SecurityPosture;
 
   // Actions
   updateSettings: (newSettings: AppSettings) => void;
@@ -59,6 +62,8 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
   useEffect(() => { setStoredData(STORAGE_KEYS.SIMULATION_HISTORY, history); }, [history]);
   useEffect(() => { setStoredData(STORAGE_KEYS.LEARNING_PROGRESS, learningProgress); }, [learningProgress]);
   useEffect(() => { setStoredData(STORAGE_KEYS.LEARNING_PROFILE, learningProfile); }, [learningProfile]);
+
+  const securityPosture = useMemo(() => buildSecurityPosture(history), [history]);
 
   // Actions
   const updateSettings = (newSettings: AppSettings) => setSettings(newSettings);
@@ -135,6 +140,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     history,
     learningProgress,
     learningProfile,
+    securityPosture,
     updateSettings,
     updateSecurityControl,
     applySecurityPreset,
@@ -143,7 +149,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     clearSimulationData,
     updateLearningFromSimulation,
     resetLearningProgress
-  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile]);
+  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture]);
 
   return (
     <CyberShadowContext.Provider value={value}>

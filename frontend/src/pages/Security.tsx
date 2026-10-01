@@ -8,6 +8,7 @@ import { DefenseCoverage } from '../components/security/DefenseCoverage';
 import { SimulationPresets } from '../components/security/SimulationPresets';
 import { SecurityQuickActions } from '../components/security/SecurityQuickActions';
 import { useCyberShadow } from '../contexts/CyberShadowContext';
+import { HistoricalPosture } from '../components/security-analysis/HistoricalPosture';
 
 const SECURITY_CONTROLS: SecurityControlDef[] = [
   {
@@ -61,7 +62,7 @@ const SECURITY_CONTROLS: SecurityControlDef[] = [
 ];
 
 export function Security() {
-  const { securityControls: controlsState, activePreset, updateSecurityControl, applySecurityPreset } = useCyberShadow();
+  const { securityControls: controlsState, activePreset, updateSecurityControl, applySecurityPreset, securityPosture } = useCyberShadow();
   const [selectedControlId, setSelectedControlId] = useState<ControlId>('mfa');
 
   // Calculate metrics based on controls
@@ -127,6 +128,22 @@ export function Security() {
       </div>
 
       <SecurityPosture metrics={metrics} />
+
+      {/* HISTORICAL SECURITY POSTURE (PHASE 5.2) */}
+      <div className="mt-12 mb-12 border-t border-slate-800/80 pt-12">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="text-[10px] font-bold text-cyan-500 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+              <ShieldAlert size={12} /> HISTORICAL POSTURE
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Simulation Posture Trends</h2>
+            <p className="text-sm text-slate-400">
+              Deterministic aggregate of your completed simulation history.
+            </p>
+          </div>
+        </div>
+        <HistoricalPosture posture={securityPosture} />
+      </div>
 
       <SimulationPresets activePreset={activePreset} onApplyPreset={handleApplyPreset} />
 

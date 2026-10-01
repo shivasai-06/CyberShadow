@@ -8,10 +8,15 @@ import { ReportInsights } from '../components/reports/ReportInsights';
 import { AttackPathAnalysis } from '../components/reports/AttackPathAnalysis';
 import { LearningRecommendations } from '../components/reports/LearningRecommendations';
 import { Button } from '../components/ui/Button';
+import { useCyberShadow } from '../contexts/CyberShadowContext';
+import { ReportPostureSummary } from '../components/reports/ReportPostureSummary';
 
 export function Reports() {
   const navigate = useNavigate();
-  const hasData = MOCK_REPORT_DATA.overview.simulationsCompleted > 0;
+  const { history, securityPosture } = useCyberShadow();
+  
+  // Use history to determine if we have data, to align with Phase 5.2 deterministic posture
+  const hasData = history.length > 0;
 
   return (
     <div className="space-y-6 pb-12 max-w-[1600px] mx-auto">
@@ -55,6 +60,8 @@ export function Reports() {
         <div className="animate-in fade-in duration-500 space-y-8">
           
           <ReportOverview metrics={MOCK_REPORT_DATA.overview} />
+          
+          <ReportPostureSummary posture={securityPosture} />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <ScenarioPerformance performance={MOCK_REPORT_DATA.scenarioPerformance} />
