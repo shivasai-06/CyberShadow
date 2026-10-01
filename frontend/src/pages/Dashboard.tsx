@@ -11,7 +11,10 @@ import { PracticeRecommendation } from '../components/history/PracticeRecommenda
 export function Dashboard() {
   const navigate = useNavigate();
 
-  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture } = useCyberShadow();
+  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture, remediations } = useCyberShadow();
+
+  const openRemediations = remediations.filter(r => r.status === 'OPEN').length;
+  const inProgressRemediations = remediations.filter(r => r.status === 'IN_PROGRESS').length;
 
   const activeCount = Object.values(controlsState).filter(Boolean).length;
   const total = Object.keys(controlsState).length;
@@ -23,7 +26,6 @@ export function Dashboard() {
 
   const recommendations = generatePracticeRecommendations(learningProfile, historyRecords);
   const primaryRecommendation = recommendations[0];
-  const secondaryRecommendations = recommendations.slice(1);
   const strongestSkill = Object.values(learningProfile.skills).sort((a, b) => b.mastery - a.mastery)[0];
 
   return (
@@ -211,41 +213,50 @@ export function Dashboard() {
             </div>
           </Panel>
 
-          {primaryRecommendation && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[220px]">
-                <Panel className="bg-gradient-to-br from-[#0b1120] to-violet-950/10 border-violet-900/30 p-6 flex flex-col h-full overflow-hidden">
-                  <h3 className="text-[11px] font-bold text-violet-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                    <Activity size={14} /> LEARNING PATH
-                  </h3>
-                  
-                  <div className="space-y-4 flex-1">
-                    <div>
-                      <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-1">CURRENT FOCUS</div>
-                      <div className="text-sm font-medium text-slate-200">{primaryRecommendation.targetSkillName}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-1">NEXT</div>
-                      <div className="text-sm font-medium text-cyan-400">{primaryRecommendation.scenarioTitle}</div>
-                    </div>
-                  </div>
-                  
-                  <Button variant="secondary" className="w-full justify-center gap-2 text-[10px] tracking-widest uppercase text-violet-300 border-violet-900 hover:bg-violet-950/30 mt-4" onClick={() => navigate('/learning-path')}>
-                    <ArrowRight size={14} /> OPEN LEARNING PATH
-                  </Button>
-                </Panel>
-                
-                {secondaryRecommendations.length > 0 && (
-                  <Panel className="bg-[#0b1120] border-slate-800/80 p-5 flex flex-col h-full overflow-hidden">
-                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">PRACTICE NEXT</h3>
-                    <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                      {secondaryRecommendations.map((rec, i) => (
-                        <PracticeRecommendation key={i} recommendation={rec} compact={true} />
-                      ))}
-                    </div>
-                  </Panel>
-                )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Panel className="bg-[#0b1120] border-slate-800/80 p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[11px] font-bold text-orange-500 uppercase tracking-[0.15em]">SECURITY ACTIONS</h2>
+                <Button variant="ghost" size="sm" className="text-[10px] uppercase tracking-widest text-orange-500 hover:text-orange-400" onClick={() => navigate('/security/remediation')}>
+                  Review
+                </Button>
               </div>
+              
+              <div className="flex-1 flex gap-4">
+                <div className="flex-1 flex flex-col justify-center bg-[#060a14] rounded border border-slate-800 p-3 items-center">
+                  <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mb-1">Open</span>
+                  <span className="text-3xl font-light text-orange-400">{openRemediations}</span>
+                </div>
+                <div className="flex-1 flex flex-col justify-center bg-[#060a14] rounded border border-slate-800 p-3 items-center">
+                  <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mb-1">In Progress</span>
+                  <span className="text-3xl font-light text-amber-400">{inProgressRemediations}</span>
+                </div>
+              </div>
+            </Panel>
+
+            {primaryRecommendation && (
+              <Panel className="bg-gradient-to-br from-[#0b1120] to-violet-950/10 border-violet-900/30 p-5 flex flex-col">
+                <h3 className="text-[11px] font-bold text-violet-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                  <Activity size={14} /> LEARNING PATH
+                </h3>
+                
+                <div className="space-y-3 flex-1">
+                  <div>
+                    <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-1">CURRENT FOCUS</div>
+                    <div className="text-sm font-medium text-slate-200">{primaryRecommendation.targetSkillName}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-1">NEXT SCENARIO</div>
+                    <div className="text-sm font-medium text-cyan-400">{primaryRecommendation.scenarioTitle}</div>
+                  </div>
+                </div>
+                
+                <Button variant="secondary" className="w-full justify-center gap-2 text-[10px] tracking-widest uppercase text-violet-300 border-violet-900 hover:bg-violet-950/30 mt-3" onClick={() => navigate('/learning-path')}>
+                  <ArrowRight size={14} /> OPEN LEARNING PATH
+                </Button>
+              </Panel>
             )}
+          </div>
           
           <Panel className="flex flex-col relative overflow-hidden flex-1 min-h-[400px]">
             <div className="flex items-center justify-between mb-6">

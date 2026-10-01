@@ -9,6 +9,9 @@ import { MOCK_HISTORY_RECORDS, MOCK_LEARNING_PROGRESS } from '../data/historyDat
 import { initializeLearningProfile, updateLearningProfile, SCENARIO_TO_SKILLS } from '../engine/learningEngine';
 import { buildSecurityPosture } from '../engine/securityPostureEngine';
 import type { SecurityPosture } from '../types/security-posture';
+import type { RemediationAction } from '../types/security-remediation';
+import { createRemediationFromFinding, validateRemediations } from '../engine/securityRemediationEngine';
+import { runSecurityAnalysis } from '../engine/securityAnalysisEngine';
 
 export type SecurityControlsState = Record<ControlId, boolean>;
 
@@ -30,6 +33,7 @@ export interface CyberShadowContextValue {
   learningProgress: LearningProgressMetrics;
   learningProfile: LearningProfile;
   securityPosture: SecurityPosture;
+  remediations: RemediationAction[];
 
   // Actions
   updateSettings: (newSettings: AppSettings) => void;
@@ -42,6 +46,10 @@ export interface CyberShadowContextValue {
   // Phase 3.6 Learning Actions
   updateLearningFromSimulation: (record: HistoryRecord) => void;
   resetLearningProgress: () => void;
+
+  // Phase 5.3 Remediation Actions
+  updateRemediationStatus: (id: string, status: RemediationAction['status']) => void;
+  resetRemediations: () => void;
 }
 
 const CyberShadowContext = createContext<CyberShadowContextValue | undefined>(undefined);
@@ -54,6 +62,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<HistoryRecord[]>(() => getStoredData(STORAGE_KEYS.SIMULATION_HISTORY, MOCK_HISTORY_RECORDS));
   const [learningProgress, setLearningProgress] = useState<LearningProgressMetrics>(() => getStoredData(STORAGE_KEYS.LEARNING_PROGRESS, MOCK_LEARNING_PROGRESS));
   const [learningProfile, setLearningProfile] = useState<LearningProfile>(() => getStoredData(STORAGE_KEYS.LEARNING_PROFILE, initializeLearningProfile()));
+  const [remediations, setRemediations] = useState<RemediationAction[]>(() => getStoredData(STORAGE_KEYS.REMEDIATIONS, []));
 
   // Sync state changes to localStorage
   useEffect(() => { setStoredData(STORAGE_KEYS.SETTINGS, settings); }, [settings]);
@@ -62,6 +71,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
   useEffect(() => { setStoredData(STORAGE_KEYS.SIMULATION_HISTORY, history); }, [history]);
   useEffect(() => { setStoredData(STORAGE_KEYS.LEARNING_PROGRESS, learningProgress); }, [learningProgress]);
   useEffect(() => { setStoredData(STORAGE_KEYS.LEARNING_PROFILE, learningProfile); }, [learningProfile]);
+  useEffect(() => { setStoredData(STORAGE_KEYS.REMEDIATIONS, remediations); }, [remediations]);
 
   const securityPosture = useMemo(() => buildSecurityPosture(history), [history]);
 
@@ -113,6 +123,56 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     
     // Also update learning profile
     updateLearningFromSimulation(record);
+
+    // Phase 5.3: Process remediations
+    setRemediations(prevRemediations => {
+      let currentRemediations = [...prevRemediations];
+      
+      // 1. Validate existing remediations against the new history array
+      currentRemediations = validateRemediations(currentRemediations, [record, ...history]);
+      
+      // 2. Generate new remediations for the new record
+      let analysis;
+      try {
+        analysis = runSecurityAnalysis(record);
+      } catch (e) {
+        // Safe fallback
+      }
+      
+      if (analysis && analysis.findings.length > 0) {
+        for (const finding of analysis.findings) {
+          const newActionData = createRemediationFromFinding(finding);
+          if (newActionData) {
+            // Avoid duplicates: don't create if there is already an OPEN/IN_PROGRESS remediation for the same finding title + scenario
+            const exists = currentRemediations.some(r => 
+              r.findingTitle === newActionData.findingTitle && 
+              r.relatedScenarioId === newActionData.relatedScenarioId &&
+              r.status !== 'VALIDATED'
+            );
+            
+            if (!exists) {
+              const newAction: RemediationAction = {
+                ...newActionData,
+                id: `rem_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                status: 'OPEN',
+                createdAt: new Date().toISOString()
+              };
+              currentRemediations.push(newAction);
+            }
+          }
+        }
+      }
+      
+      return currentRemediations;
+    });
+  };
+
+  const updateRemediationStatus = (id: string, status: RemediationAction['status']) => {
+    setRemediations(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  };
+
+  const resetRemediations = () => {
+    setRemediations([]);
   };
 
   const resetExperience = () => {
@@ -131,6 +191,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     setHistory(MOCK_HISTORY_RECORDS);
     setLearningProgress(MOCK_LEARNING_PROGRESS);
     setLearningProfile(initializeLearningProfile());
+    setRemediations([]);
   };
 
   const value = useMemo(() => ({
@@ -141,6 +202,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     learningProgress,
     learningProfile,
     securityPosture,
+    remediations,
     updateSettings,
     updateSecurityControl,
     applySecurityPreset,
@@ -148,8 +210,10 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     resetExperience,
     clearSimulationData,
     updateLearningFromSimulation,
-    resetLearningProgress
-  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture]);
+    resetLearningProgress,
+    updateRemediationStatus,
+    resetRemediations
+  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture, remediations]);
 
   return (
     <CyberShadowContext.Provider value={value}>

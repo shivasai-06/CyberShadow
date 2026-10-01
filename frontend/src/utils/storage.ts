@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   SIMULATION_HISTORY: 'cybershadow.simulationHistory',
   LEARNING_PROGRESS: 'cybershadow.learningProgress', // deprecated
   LEARNING_PROFILE: 'cybershadow.learningProfile',
+  REMEDIATIONS: 'cybershadow.remediations',
 };
 
 export function getStoredData<T>(key: string, fallback: T): T {

@@ -10,10 +10,11 @@ import { LearningRecommendations } from '../components/reports/LearningRecommend
 import { Button } from '../components/ui/Button';
 import { useCyberShadow } from '../contexts/CyberShadowContext';
 import { ReportPostureSummary } from '../components/reports/ReportPostureSummary';
+import { ReportRemediationSummary } from '../components/reports/ReportRemediationSummary';
 
 export function Reports() {
   const navigate = useNavigate();
-  const { history, securityPosture } = useCyberShadow();
+  const { history, securityPosture, remediations } = useCyberShadow();
   
   // Use history to determine if we have data, to align with Phase 5.2 deterministic posture
   const hasData = history.length > 0;
@@ -62,6 +63,8 @@ export function Reports() {
           <ReportOverview metrics={MOCK_REPORT_DATA.overview} />
           
           <ReportPostureSummary posture={securityPosture} />
+          
+          <ReportRemediationSummary remediations={remediations} />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <ScenarioPerformance performance={MOCK_REPORT_DATA.scenarioPerformance} />

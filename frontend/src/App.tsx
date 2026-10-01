@@ -11,6 +11,7 @@ import { WhatIfLab } from './pages/WhatIfLab';
 import { History } from './pages/History';
 import { Reports } from './pages/Reports';
 import { SecurityCenter } from './pages/SecurityCenter';
+import { RemediationCenter } from './pages/RemediationCenter';
 import { Settings } from './pages/Settings';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
           <Route path="history" element={<History />} />
           <Route path="reports" element={<Reports />} />
           <Route path="security" element={<SecurityCenter />} />
+          <Route path="security/remediation" element={<RemediationCenter />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

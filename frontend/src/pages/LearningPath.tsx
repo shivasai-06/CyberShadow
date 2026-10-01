@@ -7,9 +7,12 @@ import { MasteryProgression } from '../components/learning-path/MasteryProgressi
 import { SkillProgressGrid } from '../components/learning-path/SkillProgressGrid';
 import { CategoryProgress } from '../components/learning-path/CategoryProgress';
 import { ScenarioProgression } from '../components/learning-path/ScenarioProgression';
+import { RemediationPrompt } from '../components/learning-path/RemediationPrompt';
 
 export function LearningPath() {
-  const { learningProfile, history } = useCyberShadow();
+  const { learningProfile, history, remediations } = useCyberShadow();
+  
+  const openCount = remediations.filter(r => r.status === 'OPEN' || r.status === 'IN_PROGRESS').length;
   
   // Generate recommendations to drive Current Focus and Next Simulation
   const recommendations = generatePracticeRecommendations(learningProfile, history);
@@ -25,6 +28,7 @@ export function LearningPath() {
         </div>
       ) : (
         <>
+          <RemediationPrompt openCount={openCount} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <CurrentFocus recommendation={primaryRecommendation} profile={learningProfile} />
             <NextSimulationCard recommendation={primaryRecommendation} />
