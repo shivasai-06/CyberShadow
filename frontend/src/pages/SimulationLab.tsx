@@ -16,6 +16,8 @@ import { useCyberShadow } from '../contexts/CyberShadowContext';
 import { calculateSimulationPath } from '../engine/simulationEngine';
 import { updateLearningProfile } from '../engine/learningEngine';
 import { generatePracticeRecommendations } from '../engine/recommendationEngine';
+import { aiApi, type AgentResponse } from '../services/aiApi';
+import { buildAIAgentContext } from '../services/aiContext';
 import { SIMULATION_SCENARIOS } from '../data/simulationScenarios';
 import type { HistoryRecord } from '../types/history';
 import type { SimulationLearningUpdate } from '../types/learning';
@@ -23,7 +25,7 @@ import type { SimulationLearningUpdate } from '../types/learning';
 export function SimulationLab() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addSimulationResult, securityControls, learningProfile, history } = useCyberShadow();
+  const { addSimulationResult, securityControls, learningProfile, history, settings } = useCyberShadow();
   
   const initialScenarioId = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -42,6 +44,10 @@ export function SimulationLab() {
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [userDecisions, setUserDecisions] = useState<UserDecisionsRecord>({});
   const [learningUpdate, setLearningUpdate] = useState<SimulationLearningUpdate | null>(null);
+  
+  const [completedRecord, setCompletedRecord] = useState<HistoryRecord | null>(null);
+  const [aiState, setAiState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [aiResult, setAiResult] = useState<AgentResponse | null>(null);
   
   const scenario = useMemo(() => SIMULATION_SCENARIOS.find(s => s.id === selectedScenarioId) || SIMULATION_SCENARIOS[0], [selectedScenarioId]);
   
@@ -109,6 +115,7 @@ export function SimulationLab() {
           const recommendations = generatePracticeRecommendations(learningProfile, [newRecord, ...history]);
           update.practiceNext = recommendations[0] || undefined;
           setLearningUpdate(update);
+          setCompletedRecord(newRecord);
           
           addSimulationResult(newRecord, simulationPlan.isBlocked);
         }
@@ -119,6 +126,50 @@ export function SimulationLab() {
       if (timer) clearTimeout(timer);
     };
   }, [simulationState, currentStepIndex, simulationPlan, scenario, securityControls, isWaitingForDecision, addSimulationResult, learningProfile, history]);
+
+  useEffect(() => {
+    let controller = new AbortController();
+    
+    if (simulationState === 'completed' && aiState === 'idle' && completedRecord && settings) {
+      setAiState('loading');
+      
+      const runAi = async () => {
+        try {
+          const ctx = buildAIAgentContext(
+             settings,
+             learningProfile,
+             history,
+             scenario as any,
+             learningUpdate?.practiceNext,
+             completedRecord
+          );
+          
+          const req = {
+            message: "Analyze the completed simulation and provide educational reasoning.",
+            context: ctx
+          };
+          
+          const response = await aiApi.runAIAgent(req, controller.signal);
+          if (response.success && response.reasoning) {
+            setAiResult(response);
+            setAiState('success');
+          } else {
+            setAiState('error');
+          }
+        } catch (err: any) {
+          if (err.name !== 'AbortError') {
+            setAiState('error');
+          }
+        }
+      };
+      
+      runAi();
+    }
+    
+    return () => {
+      controller.abort();
+    };
+  }, [simulationState, aiState, completedRecord, history, learningProfile, scenario, learningUpdate, settings]);
 
   const handleStart = () => {
     setUserDecisions({});
@@ -140,6 +191,9 @@ export function SimulationLab() {
     setUserDecisions({});
     setLearningUpdate(null);
     setReplayOfRecord(null);
+    setCompletedRecord(null);
+    setAiState('idle');
+    setAiResult(null);
   };
   
   const handleReplay = () => {
@@ -151,6 +205,9 @@ export function SimulationLab() {
     setSimulationState('running');
     setCurrentStepIndex(0);
     setLearningUpdate(null);
+    setCompletedRecord(null);
+    setAiState('idle');
+    setAiResult(null);
   };
 
   const handleExit = () => {
@@ -346,6 +403,68 @@ export function SimulationLab() {
                   decisionsHistory={simulationPlan.decisionsMadeHistory}
                   learningUpdate={learningUpdate}
                 />
+              </div>
+
+              {/* AI REASONING */}
+              <div className="mt-8 border-t border-slate-800/50 pt-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <Activity className="text-cyan-500" size={20} />
+                  <div>
+                    <h3 className="text-lg font-bold text-white tracking-wide">AI LEARNING ANALYSIS</h3>
+                    <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mt-1">
+                      AI-GENERATED EDUCATIONAL ANALYSIS • SIMULATION ONLY
+                    </div>
+                  </div>
+                </div>
+
+                {aiState === 'loading' && (
+                  <div className="p-6 border border-slate-800/80 bg-[#060a14] rounded-lg flex items-center justify-center">
+                    <div className="flex items-center gap-3 text-cyan-500">
+                      <div className="w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-sm font-bold tracking-widest uppercase">Analyzing this simulation...</span>
+                    </div>
+                  </div>
+                )}
+
+                {aiState === 'error' && (
+                  <div className="p-6 border border-red-500/30 bg-red-950/10 rounded-lg text-center">
+                    <p className="text-slate-300 text-sm mb-4">AI analysis is temporarily unavailable.<br/>Your simulation result and learning progress are still saved.</p>
+                    <Button variant="secondary" size="sm" onClick={() => setAiState('idle')}>RETRY ANALYSIS</Button>
+                  </div>
+                )}
+
+                {aiState === 'success' && aiResult?.reasoning && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">SITUATION</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.situation || aiResult.explanation}</div>
+                    </div>
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">CAUSE</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.cause || 'No specific cause identified.'}</div>
+                    </div>
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">KEY FACTOR</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.keyFactor || 'Not specified.'}</div>
+                    </div>
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">SECURITY WEAKNESS</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.securityWeakness || 'None highlighted.'}</div>
+                    </div>
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">DEFENSE IMPACT</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.defenseImpact || 'No specific defense impact.'}</div>
+                    </div>
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">LEARNER INSIGHT</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.learnerInsight || 'Keep practicing to improve skills.'}</div>
+                    </div>
+                    <div className="md:col-span-2 p-5 border border-cyan-500/30 bg-cyan-950/20 rounded-lg">
+                      <div className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest mb-2">NEXT LEARNING STEP</div>
+                      <div className="text-sm text-white">{aiResult.reasoning.nextLearningStep || aiResult.recommendation}</div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {replayOfRecord && history[0] && (
