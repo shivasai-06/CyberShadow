@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, LayoutDashboard, BookOpen, Play } from 'lucide-react';
-import { DEFAULT_SETTINGS, type AppSettings } from '../types/settings';
+import { useCyberShadow } from '../contexts/CyberShadowContext';
 import { SettingsSection } from '../components/settings/SettingsSection';
 import { ProfileSettings } from '../components/settings/ProfileSettings';
 import { LearningPreferences } from '../components/settings/LearningPreferences';
@@ -14,7 +14,7 @@ import { Button } from '../components/ui/Button';
 
 export function Settings() {
   const navigate = useNavigate();
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const { settings, updateSettings, clearSimulationData, resetExperience } = useCyberShadow();
   const [showSavedMsg, setShowSavedMsg] = useState(false);
 
   // Trigger subtle "saved" feedback when settings change deeply
@@ -25,13 +25,12 @@ export function Settings() {
   }, [settings]);
 
   const handleClearData = () => {
-    // In this fictional phase, we just pretend to clear data
-    // Usually this would clear localStorage or fictional history state
+    clearSimulationData();
     console.log('Cleared local simulation data.');
   };
 
   const handleReset = () => {
-    setSettings(DEFAULT_SETTINGS);
+    resetExperience();
   };
 
   return (
@@ -63,35 +62,35 @@ export function Settings() {
         <SettingsSection title="LEARNING PROFILE">
           <ProfileSettings 
             profile={settings.profile} 
-            onUpdate={(profile) => setSettings({ ...settings, profile })} 
+            onUpdate={(profile) => updateSettings({ ...settings, profile })} 
           />
         </SettingsSection>
 
         <SettingsSection title="LEARNING PREFERENCES">
           <LearningPreferences 
             learning={settings.learning} 
-            onChange={(learning) => setSettings({ ...settings, learning })} 
+            onChange={(learning) => updateSettings({ ...settings, learning })} 
           />
         </SettingsSection>
 
         <SettingsSection title="SIMULATION PREFERENCES">
           <SimulationPreferences 
             simulation={settings.simulation} 
-            onChange={(simulation) => setSettings({ ...settings, simulation })} 
+            onChange={(simulation) => updateSettings({ ...settings, simulation })} 
           />
         </SettingsSection>
 
         <SettingsSection title="INTERFACE">
           <InterfacePreferences 
             ui={settings.interface} 
-            onChange={(ui) => setSettings({ ...settings, interface: ui })} 
+            onChange={(ui) => updateSettings({ ...settings, interface: ui })} 
           />
         </SettingsSection>
 
         <SettingsSection title="NOTIFICATIONS">
           <NotificationSettings 
             notifications={settings.notifications} 
-            onChange={(notifications) => setSettings({ ...settings, notifications })} 
+            onChange={(notifications) => updateSettings({ ...settings, notifications })} 
           />
         </SettingsSection>
 

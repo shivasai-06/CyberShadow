@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom';
 interface HistoryDetailProps {
   record: HistoryRecord;
   onBack: () => void;
+  onViewOriginal?: (id: string) => void;
 }
 
-export function HistoryDetail({ record, onBack }: HistoryDetailProps) {
+export function HistoryDetail({ record, onBack, onViewOriginal }: HistoryDetailProps) {
   const navigate = useNavigate();
   const isBlocked = record.result === 'ATTACK BLOCKED';
 
@@ -31,8 +32,26 @@ export function HistoryDetail({ record, onBack }: HistoryDetailProps) {
           
           <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
             <div className="max-w-3xl">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">SIMULATION SUMMARY</div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">SIMULATION SUMMARY</div>
+                {record.runType === 'REPLAY' && (
+                  <div className="text-[10px] font-bold text-violet-400 uppercase tracking-widest px-2 py-0.5 bg-violet-900/20 rounded border border-violet-900/50">
+                    REPLAY RUN
+                  </div>
+                )}
+              </div>
               <h2 className="text-3xl font-bold text-white tracking-wide mb-4">{record.scenarioName}</h2>
+              
+              {record.runType === 'REPLAY' && record.replayOfId && (
+                <div className="mb-6 p-4 rounded bg-violet-950/20 border border-violet-900/30">
+                  <p className="text-xs text-violet-300 mb-3">This simulation was replayed from an earlier run.</p>
+                  {onViewOriginal && (
+                    <Button variant="secondary" size="sm" onClick={() => onViewOriginal(record.replayOfId!)} className="text-[10px] tracking-widest uppercase border-violet-800 hover:bg-violet-900/30 text-violet-300">
+                      VIEW ORIGINAL RUN
+                    </Button>
+                  )}
+                </div>
+              )}
               
               <div className="flex flex-wrap gap-6 text-xs mb-8">
                 <div>
@@ -111,6 +130,18 @@ export function HistoryDetail({ record, onBack }: HistoryDetailProps) {
                 SIMULATION CONTROLS ONLY. Does NOT modify real systems.
               </p>
             </section>
+            {record.skillsPracticed && record.skillsPracticed.length > 0 && (
+              <section>
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">SKILLS PRACTICED</h4>
+                <div className="flex flex-wrap gap-2">
+                  {record.skillsPracticed.map((skill, i) => (
+                    <span key={i} className="px-3 py-1.5 rounded border border-cyan-900/50 bg-cyan-950/20 text-cyan-400 text-[10px] font-bold uppercase tracking-widest">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
 
           <div className="lg:col-span-1">

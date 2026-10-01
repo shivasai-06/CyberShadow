@@ -1,15 +1,27 @@
 import { Panel } from '../ui/Panel';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
+import type { ImpactLevel } from '../../types/simulation';
 
 interface SimulationResultProps {
-  result: 'COMPROMISED' | 'BLOCKED';
+  result: string; // 'ATTACK BLOCKED', 'SIMULATED COMPROMISE', 'DATA RECOVERED', 'DATA LOSS'
   title: string;
   description: string;
   keyFactor: string;
+  impactLevel?: ImpactLevel;
 }
 
-export function SimulationResult({ result, title, description, keyFactor }: SimulationResultProps) {
-  const isBlocked = result === 'BLOCKED';
+export function SimulationResult({ result, title, description, keyFactor, impactLevel }: SimulationResultProps) {
+  const isBlocked = result === 'ATTACK BLOCKED' || result === 'DATA RECOVERED' || result === 'BLOCKED';
+
+  const getImpactColor = (impact?: string) => {
+    switch (impact) {
+      case 'CRITICAL': return 'text-red-500';
+      case 'HIGH': return 'text-orange-500';
+      case 'MEDIUM': return 'text-amber-500';
+      case 'LOW': return 'text-green-500';
+      default: return 'text-slate-500';
+    }
+  };
 
   return (
     <Panel className={`border ${isBlocked ? 'border-green-500/30' : 'border-red-500/30'} flex flex-col md:flex-row gap-8 items-center overflow-hidden relative`}>
@@ -18,7 +30,14 @@ export function SimulationResult({ result, title, description, keyFactor }: Simu
       </div>
       
       <div className="flex-1 z-10">
-        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">SIMULATION OUTCOME</div>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SIMULATION OUTCOME</div>
+          {impactLevel && (
+            <div className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-current ${getImpactColor(impactLevel)} bg-black/20`}>
+              IMPACT: {impactLevel}
+            </div>
+          )}
+        </div>
         <h2 className={`text-3xl font-bold tracking-tight mb-4 ${isBlocked ? 'text-green-400' : 'text-red-400'}`}>
           {title}
         </h2>
@@ -35,7 +54,7 @@ export function SimulationResult({ result, title, description, keyFactor }: Simu
         <div className={`px-2 py-1 text-[9px] font-bold rounded uppercase tracking-widest ${
           isBlocked ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
         }`}>
-          {isBlocked ? 'PROTECTED' : 'MFA WAS OFF'}
+          {isBlocked ? 'PROTECTED' : 'UNPROTECTED'}
         </div>
       </div>
     </Panel>

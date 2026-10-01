@@ -7,6 +7,7 @@ import { WhatChangesPanel } from '../components/security/WhatChangesPanel';
 import { DefenseCoverage } from '../components/security/DefenseCoverage';
 import { SimulationPresets } from '../components/security/SimulationPresets';
 import { SecurityQuickActions } from '../components/security/SecurityQuickActions';
+import { useCyberShadow } from '../contexts/CyberShadowContext';
 
 const SECURITY_CONTROLS: SecurityControlDef[] = [
   {
@@ -60,16 +61,7 @@ const SECURITY_CONTROLS: SecurityControlDef[] = [
 ];
 
 export function Security() {
-  const [controlsState, setControlsState] = useState<Record<ControlId, boolean>>({
-    mfa: true,
-    password_strength: true,
-    automatic_updates: true,
-    backup: true,
-    privacy: false,
-    security_awareness: true,
-  });
-
-  const [activePreset, setActivePreset] = useState<PresetType | null>('BALANCED');
+  const { securityControls: controlsState, activePreset, updateSecurityControl, applySecurityPreset } = useCyberShadow();
   const [selectedControlId, setSelectedControlId] = useState<ControlId>('mfa');
 
   // Calculate metrics based on controls
@@ -98,29 +90,12 @@ export function Security() {
   }, [controlsState]);
 
   const handleToggleControl = (id: ControlId, value: boolean) => {
-    setControlsState(prev => ({ ...prev, [id]: value }));
-    setActivePreset(null); // Clear preset if manual override
+    updateSecurityControl(id, value);
     setSelectedControlId(id); // Focus the clicked control
   };
 
   const handleApplyPreset = (preset: PresetType) => {
-    setActivePreset(preset);
-    if (preset === 'BALANCED') {
-      setControlsState({
-        mfa: true, password_strength: true, automatic_updates: true,
-        backup: true, privacy: false, security_awareness: true
-      });
-    } else if (preset === 'HIGH_PROTECTION') {
-      setControlsState({
-        mfa: true, password_strength: true, automatic_updates: true,
-        backup: true, privacy: true, security_awareness: true
-      });
-    } else if (preset === 'TEST_VULNERABILITIES') {
-      setControlsState({
-        mfa: false, password_strength: false, automatic_updates: true,
-        backup: false, privacy: false, security_awareness: false
-      });
-    }
+    applySecurityPreset(preset);
   };
 
   const selectedControl = SECURITY_CONTROLS.find(c => c.id === selectedControlId)!;

@@ -1,134 +1,129 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { Activity, Play, Pause, RotateCcw, MonitorPlay, LogOut } from 'lucide-react';
-import type { SimulationScenario, SimulationState } from '../types/simulation';
+import { Activity, Play, Pause, RotateCcw, MonitorPlay, LogOut, CheckCircle2, Circle } from 'lucide-react';
+import type { SimulationState, UserDecisionsRecord, SimulationMode } from '../types/simulation';
 import { SimulationScenarioSelector } from '../components/simulation/SimulationScenarioSelector';
 import { SimulationWorkspace } from '../components/simulation/SimulationWorkspace';
 import { SimulationEventPanel } from '../components/simulation/SimulationEventPanel';
 import { SimulationDefensePanel } from '../components/simulation/SimulationDefensePanel';
 import { SimulationResult } from '../components/simulation/SimulationResult';
 import { SimulationLearning } from '../components/simulation/SimulationLearning';
-
-const MOCK_SCENARIOS: SimulationScenario[] = [
-  {
-    id: 'sc_phishing',
-    name: 'PHISHING → ACCOUNT TAKEOVER',
-    difficulty: 'BEGINNER',
-    category: 'SOCIAL ENGINEERING',
-    description: 'See how a fictional phishing message can lead to credential exposure and account compromise when defensive controls are weak.',
-    estimatedTime: '~60 SECONDS',
-    controlsInvolved: ['MFA', 'PASSWORD STRENGTH', 'SECURITY AWARENESS'],
-    steps: [
-      { id: 's1', name: 'MESSAGE', description: 'A simulated phishing email arrives in the fictional inbox.', learningContext: 'Attackers often begin with broad social engineering campaigns to find a weak entry point.' },
-      { id: 's2', name: 'USER INTERACTION', description: 'The fictional user interacted with the simulated phishing message.', learningContext: 'Human interaction can become an important point in a simulated attack path.' },
-      { id: 's3', name: 'FAKE LOGIN', description: 'The user is directed to a simulated fake login portal.', learningContext: 'Deceptive login pages are designed to harvest credentials silently.' },
-      { id: 's4', name: 'CREDENTIAL EXPOSURE', description: 'The fictional credentials have been exposed to the simulated adversary.', learningContext: 'Exposed credentials are the primary enabler of account takeover if no other defenses exist.' },
-      { id: 's5', name: 'ACCOUNT TAKEOVER', description: 'The simulated adversary uses the credentials to access the account.', learningContext: 'Without secondary authentication, a password breach leads directly to compromise.', isDefenseCheckpoint: true, controlEvaluated: 'MFA' }
-    ],
-    successResult: {
-      title: 'ATTACK BLOCKED',
-      description: 'The simulated credential exposure reached an MFA checkpoint and the fictional attack path was stopped.',
-      keyFactor: 'MFA'
-    },
-    blockedResult: {
-      title: 'SIMULATED COMPROMISE',
-      description: 'The fictional attack path reached the account because the simulated identity lacked an additional authentication control.',
-      keyFactor: 'MFA'
-    }
-  },
-  {
-    id: 'sc_attachment',
-    name: 'MALICIOUS ATTACHMENT',
-    difficulty: 'INTERMEDIATE',
-    category: 'ENDPOINT SECURITY',
-    description: 'Explore how a fictional malicious attachment can move from user interaction toward endpoint exposure.',
-    estimatedTime: '~60 SECONDS',
-    controlsInvolved: ['ENDPOINT PROTECTION', 'SECURITY AWARENESS'],
-    steps: [
-      { id: 'a1', name: 'EMAIL', description: 'A simulated email containing a malicious attachment arrives.', learningContext: 'Attachments are common vectors for delivering malware.' },
-      { id: 'a2', name: 'ATTACHMENT', description: 'The attachment is downloaded to the local device.', learningContext: 'File-based threats often require user execution to activate.' },
-      { id: 'a3', name: 'USER OPENS FILE', description: 'The fictional user opens the simulated attachment.', learningContext: 'Executing unknown files bypasses initial perimeter defenses.' },
-      { id: 'a4', name: 'ENDPOINT EXPOSURE', description: 'The simulated malware attempts to execute on the endpoint.', learningContext: 'Endpoint protection platforms evaluate processes at execution time.' },
-      { id: 'a5', name: 'SIMULATED IMPACT', description: 'The fictional malware achieves persistence.', learningContext: 'Without adequate endpoint controls, devices can become fully compromised.', isDefenseCheckpoint: true, controlEvaluated: 'MFA' } // using MFA toggle to represent general control for simplicity
-    ],
-    successResult: {
-      title: 'ATTACK BLOCKED',
-      description: 'The simulated endpoint protection quarantined the file before execution could complete.',
-      keyFactor: 'DEFENSE CONTROL'
-    },
-    blockedResult: {
-      title: 'SIMULATED COMPROMISE',
-      description: 'The fictional attack path infected the endpoint because the simulated device lacked strict execution controls.',
-      keyFactor: 'EXECUTION CONTROL'
-    }
-  },
-  {
-    id: 'sc_password',
-    name: 'WEAK PASSWORD',
-    difficulty: 'BEGINNER',
-    category: 'IDENTITY SECURITY',
-    description: 'Understand how weak authentication controls can increase the simulated risk of account compromise.',
-    estimatedTime: '~45 SECONDS',
-    controlsInvolved: ['PASSWORD STRENGTH', 'MFA'],
-    steps: [
-      { id: 'p1', name: 'WEAK PASSWORD', description: 'The fictional user sets a weak password (e.g., Password123).', learningContext: 'Weak passwords are easily guessable or crackable.' },
-      { id: 'p2', name: 'LOGIN ATTEMPT', description: 'A simulated adversary attempts to guess the password.', learningContext: 'Brute force and credential stuffing attacks exploit weak passwords.' },
-      { id: 'p3', name: 'AUTHENTICATION', description: 'The simulated password guess is successful.', learningContext: 'Without complexity requirements, passwords offer minimal protection.' },
-      { id: 'p4', name: 'ACCOUNT ACCESS', description: 'The simulated adversary gains access to the account.', learningContext: 'Additional authentication layers are required to secure weak passwords.' },
-      { id: 'p5', name: 'SIMULATED COMPROMISE', description: 'The fictional account is compromised.', learningContext: 'A single point of failure in authentication leads to compromise.', isDefenseCheckpoint: true, controlEvaluated: 'MFA' }
-    ],
-    successResult: {
-      title: 'ATTACK BLOCKED',
-      description: 'The simulated adversary guessed the password, but the login was blocked by an MFA challenge.',
-      keyFactor: 'MFA'
-    },
-    blockedResult: {
-      title: 'SIMULATED COMPROMISE',
-      description: 'The fictional attack path succeeded because the weak password was the only barrier to entry.',
-      keyFactor: 'MFA'
-    }
-  }
-];
+import { SimulationDefenseImpact } from '../components/simulation/SimulationDefenseImpact';
+import { SimulationDecision } from '../components/simulation/SimulationDecision';
+import { SimulationReplayComparison } from '../components/simulation/SimulationReplayComparison';
+import { useCyberShadow } from '../contexts/CyberShadowContext';
+import { calculateSimulationPath } from '../engine/simulationEngine';
+import { updateLearningProfile } from '../engine/learningEngine';
+import { generatePracticeRecommendations } from '../engine/recommendationEngine';
+import { SIMULATION_SCENARIOS } from '../data/simulationScenarios';
+import type { HistoryRecord } from '../types/history';
+import type { SimulationLearningUpdate } from '../types/learning';
 
 export function SimulationLab() {
   const navigate = useNavigate();
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string>(MOCK_SCENARIOS[0].id);
-  const [mfaEnabled, setMfaEnabled] = useState<boolean>(false);
+  const location = useLocation();
+  const { addSimulationResult, securityControls, learningProfile, history } = useCyberShadow();
+  
+  const initialScenarioId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const preselected = params.get('scenario');
+    if (preselected && SIMULATION_SCENARIOS.find(s => s.id === preselected)) {
+      return preselected;
+    }
+    return SIMULATION_SCENARIOS[0].id;
+  }, [location.search]);
+
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>(initialScenarioId);
   
   const [simulationState, setSimulationState] = useState<SimulationState>('idle');
+  const [simulationMode, setSimulationMode] = useState<SimulationMode>('STANDARD');
+  const [replayOfRecord, setReplayOfRecord] = useState<HistoryRecord | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-  const [simulationResult, setSimulationResult] = useState<'COMPROMISED' | 'BLOCKED' | null>(null);
+  const [userDecisions, setUserDecisions] = useState<UserDecisionsRecord>({});
+  const [learningUpdate, setLearningUpdate] = useState<SimulationLearningUpdate | null>(null);
+  
+  const scenario = useMemo(() => SIMULATION_SCENARIOS.find(s => s.id === selectedScenarioId) || SIMULATION_SCENARIOS[0], [selectedScenarioId]);
+  
+  // Recalculate plan if security controls or decisions change
+  const simulationPlan = useMemo(() => {
+    if (simulationState === 'idle') return null;
+    return calculateSimulationPath(scenario, securityControls, userDecisions);
+  }, [scenario, securityControls, userDecisions, simulationState]);
 
-  const scenario = MOCK_SCENARIOS.find(s => s.id === selectedScenarioId) || MOCK_SCENARIOS[0];
-  const currentStep = simulationState !== 'idle' ? scenario.steps[currentStepIndex] : null;
+  const currentStep = simulationState !== 'idle' && simulationPlan && currentStepIndex < simulationPlan.stepsToRun.length 
+    ? simulationPlan.stepsToRun[currentStepIndex] 
+    : null;
+
+  const isWaitingForDecision = simulationState === 'running' && 
+    simulationPlan?.pendingDecision !== null && 
+    simulationPlan?.pendingDecisionStepIndex === currentStepIndex;
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     
-    if (simulationState === 'running') {
+    // Only progress automatically if we are running, have a plan, and NOT waiting for a decision on the current step
+    if (simulationState === 'running' && simulationPlan && !isWaitingForDecision) {
       timer = setTimeout(() => {
-        if (currentStepIndex < scenario.steps.length - 1) {
+        if (currentStepIndex < simulationPlan.stepsToRun.length - 1) {
           // Move to next step
           setCurrentStepIndex(prev => prev + 1);
-        } else {
-          // Evaluate outcome on final step
-          const isBlocked = mfaEnabled; // Simple logic: if MFA is ON, block it
-          setSimulationResult(isBlocked ? 'BLOCKED' : 'COMPROMISED');
+        } else if (!simulationPlan.pendingDecision) {
+          // Reached the end, and no pending decisions remain
           setSimulationState('completed');
+
+          // Append to Simulation History
+          const activeControls = Object.entries(securityControls)
+            .filter(([_, isActive]) => isActive)
+            .map(([key, _]) => key.toUpperCase().replace('_', ' ') + ' ENABLED');
+
+          const newRecord: HistoryRecord = {
+            id: `hist_${Date.now()}`,
+            scenarioId: scenario.id,
+            scenarioName: scenario.name,
+            category: scenario.category as any,
+            difficulty: scenario.difficulty,
+            date: new Date().toISOString(),
+            duration: `${Math.round(simulationPlan.stepsToRun.length * 2.5)}s`,
+            result: simulationPlan.outcome,
+            risk: simulationPlan.impactLevel as any,
+            defensesActive: activeControls.length > 0 ? activeControls : ['NO DEFENSES'],
+            explanation: simulationPlan.finalExplanation,
+            learningPoints: simulationPlan.stepsToRun.map(s => s.learningContext),
+            attackPath: simulationPlan.stepsToRun.map(s => s.name),
+            completedSteps: simulationPlan.stepsToRun.length,
+            impactLevel: simulationPlan.impactLevel,
+            controlResponsible: simulationPlan.controlResponsible || undefined,
+            blockedAtStep: simulationPlan.isBlocked && simulationPlan.blockedAtStepIndex !== null ? simulationPlan.stepsToRun[simulationPlan.blockedAtStepIndex].name : undefined,
+            defenseImpacts: simulationPlan.defenseImpacts,
+            decisionsMade: simulationPlan.decisionsMadeHistory,
+            protectiveDecisions: simulationPlan.decisionsMadeHistory.filter(d => d.isProtective).length,
+            riskyDecisions: simulationPlan.decisionsMadeHistory.filter(d => !d.isProtective).length,
+            decisionCount: simulationPlan.decisionsMadeHistory.length,
+            runType: replayOfRecord ? 'REPLAY' : 'ORIGINAL',
+            replayOfId: replayOfRecord ? replayOfRecord.id : undefined
+          };
+          
+          const { update } = updateLearningProfile(learningProfile, newRecord);
+          // Add recommendation to the update
+          const recommendations = generatePracticeRecommendations(learningProfile, [newRecord, ...history]);
+          update.practiceNext = recommendations[0] || undefined;
+          setLearningUpdate(update);
+          
+          addSimulationResult(newRecord, simulationPlan.isBlocked);
         }
-      }, 2500); // 2.5 seconds per step for demonstration
+      }, 2500); 
     }
 
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [simulationState, currentStepIndex, scenario.steps.length, mfaEnabled]);
+  }, [simulationState, currentStepIndex, simulationPlan, scenario, securityControls, isWaitingForDecision, addSimulationResult, learningProfile, history]);
 
   const handleStart = () => {
+    setUserDecisions({});
     setSimulationState('running');
     setCurrentStepIndex(0);
-    setSimulationResult(null);
   };
 
   const handlePause = () => {
@@ -142,11 +137,34 @@ export function SimulationLab() {
   const handleRestart = () => {
     setSimulationState('idle');
     setCurrentStepIndex(0);
-    setSimulationResult(null);
+    setUserDecisions({});
+    setLearningUpdate(null);
+    setReplayOfRecord(null);
+  };
+  
+  const handleReplay = () => {
+    // Start replay
+    // We assume the last run is the current one because it just finished. 
+    // We can fetch it from history[0] if needed, but since we are replaying the just-finished one, we just need to set the state.
+    setReplayOfRecord(history[0]);
+    setUserDecisions({});
+    setSimulationState('running');
+    setCurrentStepIndex(0);
+    setLearningUpdate(null);
   };
 
   const handleExit = () => {
     handleRestart();
+  };
+
+  const handleDecisionMade = (optionId: string) => {
+    if (simulationPlan?.pendingDecision) {
+      setUserDecisions(prev => ({
+        ...prev,
+        [simulationPlan.pendingDecision!.id]: optionId
+      }));
+      // The plan recalculates via useMemo. If there's no new decision on this same index, the timer continues.
+    }
   };
 
   return (
@@ -175,7 +193,7 @@ export function SimulationLab() {
         // --- SETUP PHASE ---
         <div className="space-y-8 animate-in fade-in duration-500">
           <SimulationScenarioSelector 
-            scenarios={MOCK_SCENARIOS} 
+            scenarios={SIMULATION_SCENARIOS as any} 
             selectedId={selectedScenarioId} 
             onSelect={setSelectedScenarioId} 
           />
@@ -200,15 +218,41 @@ export function SimulationLab() {
                   </div>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-4 w-full md:w-auto">
-                <Button variant="secondary" onClick={() => navigate('/digital-twin')} className="flex-1 md:flex-none justify-center">
-                  VIEW DIGITAL TWIN
-                </Button>
-                <Button variant="primary" onClick={handleStart} className="flex-1 md:flex-none justify-center gap-2">
-                  <Play size={16} fill="currentColor" /> START SIMULATION
-                </Button>
+            </div>
+            
+            <div className="mt-8 border-t border-slate-800/80 pt-6">
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">SIMULATION MODE</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button
+                  onClick={() => setSimulationMode('STANDARD')}
+                  className={`p-4 rounded-lg border text-left transition-all ${simulationMode === 'STANDARD' ? 'bg-cyan-950/20 border-cyan-500' : 'bg-[#060a14] border-slate-800 hover:border-slate-600'}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`font-bold ${simulationMode === 'STANDARD' ? 'text-white' : 'text-slate-300'}`}>STANDARD</span>
+                    {simulationMode === 'STANDARD' ? <CheckCircle2 size={16} className="text-cyan-500" /> : <Circle size={16} className="text-slate-600" />}
+                  </div>
+                  <div className="text-xs text-slate-400">Guided simulation with contextual explanations.</div>
+                </button>
+                <button
+                  onClick={() => setSimulationMode('CHALLENGE')}
+                  className={`p-4 rounded-lg border text-left transition-all ${simulationMode === 'CHALLENGE' ? 'bg-violet-950/20 border-violet-500' : 'bg-[#060a14] border-slate-800 hover:border-slate-600'}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`font-bold ${simulationMode === 'CHALLENGE' ? 'text-white' : 'text-slate-300'}`}>CHALLENGE</span>
+                    {simulationMode === 'CHALLENGE' ? <CheckCircle2 size={16} className="text-violet-500" /> : <Circle size={16} className="text-slate-600" />}
+                  </div>
+                  <div className="text-xs text-slate-400">Make security decisions with reduced guidance, then review your choices.</div>
+                </button>
               </div>
+            </div>
+            
+            <div className="flex items-center gap-4 w-full md:w-auto border-t border-slate-800/80 pt-6">
+              <Button variant="secondary" onClick={() => navigate('/digital-twin')} className="flex-1 md:flex-none justify-center">
+                VIEW DIGITAL TWIN
+              </Button>
+              <Button variant="primary" onClick={handleStart} className="flex-1 md:flex-none justify-center gap-2">
+                <Play size={16} fill="currentColor" /> START SIMULATION
+              </Button>
             </div>
           </div>
         </div>
@@ -220,12 +264,12 @@ export function SimulationLab() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#060a14] border border-slate-800/80 rounded-lg">
             <div className="flex items-center gap-4">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                PROGRESS: STEP {Math.min(currentStepIndex + 1, scenario.steps.length)} / {scenario.steps.length}
+                PROGRESS: STEP {Math.min(currentStepIndex + 1, simulationPlan?.stepsToRun.length || 0)} / {simulationPlan?.stepsToRun.length || 0}
               </span>
               <div className="w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                 <div 
-                  className={`h-full transition-all duration-1000 ease-linear ${simulationResult === 'BLOCKED' ? 'bg-green-500' : simulationResult === 'COMPROMISED' ? 'bg-red-500' : 'bg-cyan-500'}`}
-                  style={{ width: `${((currentStepIndex + (simulationState === 'completed' ? 1 : 0)) / scenario.steps.length) * 100}%` }}
+                  className={`h-full transition-all duration-1000 ease-linear ${simulationState === 'completed' ? (simulationPlan?.isBlocked ? 'bg-green-500' : 'bg-red-500') : 'bg-cyan-500'}`}
+                  style={{ width: `${((currentStepIndex + (simulationState === 'completed' ? 1 : 0)) / (simulationPlan?.stepsToRun.length || 1)) * 100}%` }}
                 />
               </div>
             </div>
@@ -252,46 +296,75 @@ export function SimulationLab() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 flex flex-col gap-6">
-              <SimulationWorkspace 
-                scenario={scenario} 
-                currentState={simulationState} 
-                currentStepIndex={currentStepIndex} 
-                simulationResult={simulationResult} 
-              />
+              
+              {isWaitingForDecision && simulationPlan?.pendingDecision ? (
+                <SimulationDecision 
+                  decision={simulationPlan.pendingDecision} 
+                  mode={simulationMode}
+                  onDecisionMade={handleDecisionMade} 
+                />
+              ) : (
+                <SimulationWorkspace 
+                  scenario={{...scenario, steps: simulationPlan?.stepsToRun || []} as any} 
+                  currentState={simulationState} 
+                  currentStepIndex={currentStepIndex} 
+                  simulationResult={simulationPlan?.outcome as any} 
+                />
+              )}
+              
               <SimulationEventPanel 
-                currentStep={currentStep} 
+                currentStep={currentStep as any} 
                 isActive={simulationState === 'running'} 
               />
             </div>
             
             <div className="lg:col-span-1">
               <SimulationDefensePanel 
-                mfaEnabled={mfaEnabled} 
-                onMfaToggle={setMfaEnabled} 
+                mfaEnabled={securityControls.mfa} 
+                onMfaToggle={() => {}} // Controlled globally via Security Center now
                 isSimulating={true} 
               />
             </div>
           </div>
           
           {/* SIMULATION RESULT */}
-          {simulationState === 'completed' && simulationResult && (
-            <div className="pt-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          {simulationState === 'completed' && simulationPlan && (
+            <div className="pt-6 animate-in fade-in slide-in-from-bottom-8 duration-700 space-y-8">
               <SimulationResult 
-                result={simulationResult}
-                title={simulationResult === 'BLOCKED' ? scenario.successResult.title : scenario.blockedResult.title}
-                description={simulationResult === 'BLOCKED' ? scenario.successResult.description : scenario.blockedResult.description}
-                keyFactor={simulationResult === 'BLOCKED' ? scenario.successResult.keyFactor : scenario.blockedResult.keyFactor}
+                result={simulationPlan.outcome}
+                title={simulationPlan.isBlocked ? scenario.successResult.title : scenario.blockedResult.title}
+                description={simulationPlan.finalExplanation}
+                keyFactor={simulationPlan.controlResponsible ? simulationPlan.controlResponsible.toUpperCase().replace(/_/g, ' ') : (simulationPlan.isBlocked ? scenario.successResult.keyFactor : scenario.blockedResult.keyFactor)}
+                impactLevel={simulationPlan.impactLevel}
               />
               
+              <SimulationDefenseImpact impacts={simulationPlan.defenseImpacts} />
+              
               <div className="mt-8">
-                <SimulationLearning />
+                <SimulationLearning 
+                  feedback={simulationPlan.isBlocked ? scenario.successResult.learningFeedback : scenario.blockedResult.learningFeedback} 
+                  decisionsHistory={simulationPlan.decisionsMadeHistory}
+                  learningUpdate={learningUpdate}
+                />
               </div>
+
+              {replayOfRecord && history[0] && (
+                <div className="mt-8 border-t border-slate-800/50 pt-8">
+                  <SimulationReplayComparison 
+                    firstRun={replayOfRecord} 
+                    replayRun={history[0]} 
+                  />
+                </div>
+              )}
               
               <div className="mt-12 text-center pb-8 border-t border-slate-800/50 pt-12">
                 <h2 className="text-lg font-bold text-white tracking-wide mb-6">READY TO EXPERIMENT AGAIN?</h2>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button variant="primary" onClick={handleRestart} className="gap-2 text-xs uppercase tracking-widest">
-                    <RotateCcw size={14} /> RUN AGAIN
+                <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4">
+                  <Button variant="primary" onClick={handleReplay} className="gap-2 text-xs uppercase tracking-widest border-violet-500/50 hover:bg-violet-950/30 text-violet-100 bg-violet-900/20">
+                    <RotateCcw size={14} /> REPLAY SCENARIO
+                  </Button>
+                  <Button variant="ghost" onClick={handleRestart} className="gap-2 text-xs uppercase tracking-widest">
+                    <RotateCcw size={14} /> NEW RUN
                   </Button>
                   <Button variant="secondary" onClick={() => { handleRestart(); navigate('/scenarios'); }} className="gap-2 text-xs uppercase tracking-widest">
                     <Activity size={14} /> EXPLORE OTHER SCENARIOS

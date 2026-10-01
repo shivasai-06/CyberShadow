@@ -1,16 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.core.config import settings
+from app.api.v1 import scenarios, ai
 app = FastAPI(
-    title="CyberShadow Backend",
+    title=settings.PROJECT_NAME,
     description="Backend API for CyberShadow - AI-powered Digital Attack Simulation Twin",
-    version="1.0.0",
+    version=settings.VERSION,
 )
 
-# Configure CORS for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, this should be restricted
+    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,3 +23,6 @@ def health_check():
         "service": "CyberShadow Backend",
         "version": "1.0.0"
     }
+
+app.include_router(scenarios.router, prefix="/api/v1/scenarios", tags=["Scenarios"])
+app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI Foundation"])

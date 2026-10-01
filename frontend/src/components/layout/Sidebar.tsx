@@ -11,13 +11,15 @@ import {
   Settings,
   Menu,
   X,
-  Cpu
+  Cpu,
+  GraduationCap
 } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { name: 'Digital Twin', path: '/digital-twin', icon: MonitorPlay },
   { name: 'Scenarios', path: '/scenarios', icon: ShieldAlert },
+  { name: 'Learning Path', path: '/learning-path', icon: GraduationCap },
   { name: 'Simulation Lab', path: '/simulation', icon: TestTube2 },
   { name: 'History', path: '/history', icon: History },
   { name: 'Reports', path: '/reports', icon: FileText },

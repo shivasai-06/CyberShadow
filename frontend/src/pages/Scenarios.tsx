@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
-import type { ScenarioCategory } from '../types/scenarios';
+import type { ScenarioCategory, ScenarioDefinition } from '../types/scenarios';
 import { MOCK_SCENARIOS_DATA } from '../data/scenariosData';
+import { scenarioApi } from '../services/scenarioApi';
 import { ScenarioFilters } from '../components/scenarios/ScenarioFilters';
 import { ScenarioCard } from '../components/scenarios/ScenarioCard';
 import { ScenarioDetails } from '../components/scenarios/ScenarioDetails';
@@ -15,6 +16,23 @@ export function Scenarios() {
   const [selectedCategory, setSelectedCategory] = useState<ScenarioCategory>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+  const [scenarios, setScenarios] = useState<ScenarioDefinition[]>(MOCK_SCENARIOS_DATA);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchScenarios = async () => {
+      try {
+        const data = await scenarioApi.getScenarios();
+        setScenarios(data);
+      } catch (error) {
+        console.warn('Backend unavailable or failed to load scenarios, falling back to local data', error);
+        setScenarios(MOCK_SCENARIOS_DATA);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchScenarios();
+  }, []);
 
   const handleLaunch = (_id: string) => {
     // Navigate to Simulation Lab. 
@@ -22,7 +40,7 @@ export function Scenarios() {
     navigate('/simulation');
   };
 
-  const filteredScenarios = MOCK_SCENARIOS_DATA.filter(scenario => {
+  const filteredScenarios = scenarios.filter(scenario => {
     const matchesCategory = selectedCategory === 'ALL' || scenario.category === selectedCategory;
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = 
@@ -34,7 +52,7 @@ export function Scenarios() {
   });
 
   const selectedScenario = selectedScenarioId 
-    ? MOCK_SCENARIOS_DATA.find(s => s.id === selectedScenarioId) 
+    ? scenarios.find(s => s.id === selectedScenarioId) 
     : null;
 
   return (
@@ -56,9 +74,12 @@ export function Scenarios() {
             <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
             <span className="text-[10px] font-bold text-amber-500 tracking-widest uppercase">SIMULATION ONLY</span>
           </div>
-          <div className="text-[9px] font-mono text-slate-500 tracking-widest uppercase">
+          <div className="text-[9px] font-mono text-slate-500 tracking-widest uppercase mb-4">
             FICTIONAL DATA · ISOLATED ENVIRONMENT
           </div>
+          <Button variant="secondary" size="sm" onClick={() => navigate('/learning-path')} className="text-[10px] uppercase tracking-widest text-violet-300 border-violet-900 hover:bg-violet-950/30">
+            VIEW MY LEARNING PATH
+          </Button>
         </div>
       </div>
 
@@ -72,11 +93,12 @@ export function Scenarios() {
         <div className="animate-in fade-in duration-500">
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 mb-4">
             <div className="flex gap-4 text-[10px] font-mono text-slate-500 tracking-widest uppercase">
-              <span className="text-white font-bold">{MOCK_SCENARIOS_DATA.length} FICTIONAL SCENARIOS</span>
+              <span className="text-white font-bold">{scenarios.length} FICTIONAL SCENARIOS</span>
               <span>•</span>
               <span>5 CATEGORIES</span>
               <span>•</span>
               <span className="text-green-500">0 REAL SYSTEMS</span>
+              {loading && <span className="text-amber-500 animate-pulse">LOADING...</span>}
             </div>
           </div>
           

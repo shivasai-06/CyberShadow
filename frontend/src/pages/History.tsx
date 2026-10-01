@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, ShieldAlert } from 'lucide-react';
 import type { HistoryFilterType } from '../components/history/HistoryFilters';
-import { MOCK_HISTORY_RECORDS, MOCK_LEARNING_PROGRESS, MOCK_LEARNING_INSIGHTS } from '../data/historyData';
+import { MOCK_LEARNING_INSIGHTS } from '../data/historyData';
+import { useCyberShadow } from '../contexts/CyberShadowContext';
+import { generateLearningInsights } from '../engine/learningEngine';
+import { generatePracticeRecommendations } from '../engine/recommendationEngine';
+import { PracticeRecommendation } from '../components/history/PracticeRecommendation';
 import { HistoryFilters } from '../components/history/HistoryFilters';
 import { HistoryList } from '../components/history/HistoryList';
 import { HistoryDetail } from '../components/history/HistoryDetail';
@@ -16,7 +20,13 @@ export function History() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
-  const filteredRecords = MOCK_HISTORY_RECORDS.filter(record => {
+  const { history: historyRecords, learningProgress, learningProfile } = useCyberShadow();
+  
+  const generatedInsights = generateLearningInsights(learningProfile);
+  const recommendations = generatePracticeRecommendations(learningProfile, historyRecords);
+  const topRecommendation = recommendations[0];
+
+  const filteredRecords = historyRecords.filter(record => {
     // Check filter
     const matchesFilter = (() => {
       if (selectedFilter === 'ALL') return true;
@@ -40,7 +50,7 @@ export function History() {
   });
 
   const selectedRecord = selectedRecordId 
-    ? MOCK_HISTORY_RECORDS.find(r => r.id === selectedRecordId) 
+    ? historyRecords.find(r => r.id === selectedRecordId) 
     : null;
 
   return (
@@ -68,7 +78,7 @@ export function History() {
         </div>
       </div>
 
-      {MOCK_HISTORY_RECORDS.length === 0 ? (
+      {historyRecords.length === 0 ? (
         // FIRST-TIME EMPTY STATE
         <div className="animate-in fade-in duration-500 py-20 flex flex-col items-center justify-center text-center bg-[#0b1120] rounded-lg border border-slate-800/80">
           <ShieldAlert size={48} className="text-slate-700 mb-6" />
@@ -84,6 +94,7 @@ export function History() {
         <HistoryDetail 
           record={selectedRecord} 
           onBack={() => setSelectedRecordId(null)} 
+          onViewOriginal={(id) => setSelectedRecordId(id)}
         />
       ) : (
         <div className="animate-in fade-in duration-500 space-y-8">
@@ -91,10 +102,19 @@ export function History() {
           {/* TOP METRICS SECTION */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
-              <LearningProgress metrics={MOCK_LEARNING_PROGRESS} />
+              <LearningProgress metrics={learningProgress} />
             </div>
-            <div className="md:col-span-1">
-              <LearningInsights insights={MOCK_LEARNING_INSIGHTS} />
+            <div className="md:col-span-1 space-y-6">
+              <LearningInsights insights={generatedInsights.length > 0 ? generatedInsights : MOCK_LEARNING_INSIGHTS} />
+              
+              {topRecommendation && (
+                <div className="bg-[#0b1120] border border-slate-800/80 rounded-lg overflow-hidden flex flex-col">
+                  <PracticeRecommendation recommendation={topRecommendation} compact={true} />
+                  <Button variant="secondary" onClick={() => navigate('/learning-path')} className="w-full rounded-none border-t border-slate-800 bg-violet-950/20 text-violet-400 hover:bg-violet-900/30 hover:text-violet-300 text-[10px] tracking-widest uppercase">
+                    VIEW LEARNING PATH
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
