@@ -8,6 +8,7 @@ class AIResponse(BaseModel):
     success: bool
     response: str
     error: Optional[str] = None
+    source: Optional[str] = 'gemini'
 
 class AIAgentContext(BaseModel):
     learner: Optional[Dict[str, Any]] = None
@@ -45,3 +46,4 @@ class AgentResponse(BaseModel):
     next_action: str
     reasoning: Optional[Reasoning] = None
     error: Optional[str] = None
+    source: Optional[str] = 'gemini'

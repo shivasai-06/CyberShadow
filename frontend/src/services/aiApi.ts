@@ -21,6 +21,7 @@ export interface AgentResponse {
   next_action: string;
   reasoning?: AIReasoning;
   error?: string;
+  source?: string;
 }
 
 export const aiApi = {

@@ -412,7 +412,7 @@ export function SimulationLab() {
                   <div>
                     <h3 className="text-lg font-bold text-white tracking-wide">AI LEARNING ANALYSIS</h3>
                     <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mt-1">
-                      AI-GENERATED EDUCATIONAL ANALYSIS • SIMULATION ONLY
+                      {aiResult?.source === 'fallback' ? 'EDUCATIONAL FALLBACK ANALYSIS • GEMINI UNAVAILABLE' : 'AI-GENERATED EDUCATIONAL ANALYSIS • SIMULATION ONLY'}
                     </div>
                   </div>
                 </div>
