@@ -11,6 +11,7 @@ import { Button } from '../components/ui/Button';
 import { useCyberShadow } from '../contexts/CyberShadowContext';
 import { ReportPostureSummary } from '../components/reports/ReportPostureSummary';
 import { ReportRemediationSummary } from '../components/reports/ReportRemediationSummary';
+import { ReportEffectivenessSummary } from '../components/reports/ReportEffectivenessSummary';
 
 export function Reports() {
   const navigate = useNavigate();
@@ -65,6 +66,8 @@ export function Reports() {
           <ReportPostureSummary posture={securityPosture} />
           
           <ReportRemediationSummary remediations={remediations} />
+          
+          <ReportEffectivenessSummary />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <ScenarioPerformance performance={MOCK_REPORT_DATA.scenarioPerformance} />

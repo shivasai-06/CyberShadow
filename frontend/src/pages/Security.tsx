@@ -10,6 +10,7 @@ import { SecurityQuickActions } from '../components/security/SecurityQuickAction
 import { useCyberShadow } from '../contexts/CyberShadowContext';
 import { HistoricalPosture } from '../components/security-analysis/HistoricalPosture';
 import { RemediationStatusOverview } from '../components/security-remediation/RemediationStatusOverview';
+import { RemediationEffectivenessOverview } from '../components/security-remediation/RemediationEffectivenessOverview';
 
 const SECURITY_CONTROLS: SecurityControlDef[] = [
   {
@@ -147,6 +148,7 @@ export function Security() {
       </div>
 
       <RemediationStatusOverview />
+      <RemediationEffectivenessOverview />
 
       <SimulationPresets activePreset={activePreset} onApplyPreset={handleApplyPreset} />
 

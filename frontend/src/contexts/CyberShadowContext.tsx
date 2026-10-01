@@ -12,6 +12,8 @@ import type { SecurityPosture } from '../types/security-posture';
 import type { RemediationAction } from '../types/security-remediation';
 import { createRemediationFromFinding, validateRemediations } from '../engine/securityRemediationEngine';
 import { runSecurityAnalysis } from '../engine/securityAnalysisEngine';
+import type { EffectivenessComparison } from '../types/remediation-effectiveness';
+import { getRemediationEffectiveness } from '../engine/remediationEffectivenessEngine';
 
 export type SecurityControlsState = Record<ControlId, boolean>;
 
@@ -34,6 +36,7 @@ export interface CyberShadowContextValue {
   learningProfile: LearningProfile;
   securityPosture: SecurityPosture;
   remediations: RemediationAction[];
+  effectivenessComparisons: EffectivenessComparison[];
 
   // Actions
   updateSettings: (newSettings: AppSettings) => void;
@@ -74,6 +77,14 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
   useEffect(() => { setStoredData(STORAGE_KEYS.REMEDIATIONS, remediations); }, [remediations]);
 
   const securityPosture = useMemo(() => buildSecurityPosture(history), [history]);
+
+  // Phase 5.4: Effectiveness comparisons
+  const effectivenessComparisons = useMemo(() => {
+    return remediations
+      .filter(r => r.status === 'VALIDATED')
+      .map(r => getRemediationEffectiveness(r, history))
+      .filter(Boolean) as EffectivenessComparison[];
+  }, [remediations, history]);
 
   // Actions
   const updateSettings = (newSettings: AppSettings) => setSettings(newSettings);
@@ -155,7 +166,8 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
                 ...newActionData,
                 id: `rem_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
                 status: 'OPEN',
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                sourceRunId: record.id
               };
               currentRemediations.push(newAction);
             }
@@ -203,6 +215,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     learningProfile,
     securityPosture,
     remediations,
+    effectivenessComparisons,
     updateSettings,
     updateSecurityControl,
     applySecurityPreset,
@@ -213,7 +226,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     resetLearningProgress,
     updateRemediationStatus,
     resetRemediations
-  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture, remediations]);
+  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture, remediations, effectivenessComparisons]);
 
   return (
     <CyberShadowContext.Provider value={value}>

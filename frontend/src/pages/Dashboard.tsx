@@ -11,7 +11,7 @@ import { PracticeRecommendation } from '../components/history/PracticeRecommenda
 export function Dashboard() {
   const navigate = useNavigate();
 
-  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture, remediations } = useCyberShadow();
+  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture, remediations, effectivenessComparisons } = useCyberShadow();
 
   const openRemediations = remediations.filter(r => r.status === 'OPEN').length;
   const inProgressRemediations = remediations.filter(r => r.status === 'IN_PROGRESS').length;
@@ -231,6 +231,22 @@ export function Dashboard() {
                   <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mb-1">In Progress</span>
                   <span className="text-3xl font-light text-amber-400">{inProgressRemediations}</span>
                 </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-slate-800/80">
+                <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-2">LATEST VALIDATION</div>
+                {effectivenessComparisons.length > 0 ? (
+                  <div className="text-xs flex items-center justify-between bg-slate-900/50 p-2 rounded border border-slate-800">
+                    <span className="text-slate-300 truncate">{effectivenessComparisons[effectivenessComparisons.length - 1].scenarioId.replace('sc_', '').toUpperCase()}</span>
+                    <div className="flex gap-2">
+                      <span className="text-orange-400">{effectivenessComparisons[effectivenessComparisons.length - 1].before.outcome}</span>
+                      <span className="text-slate-600 font-bold">→</span>
+                      <span className="text-green-400">{effectivenessComparisons[effectivenessComparisons.length - 1].after.outcome}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-500 italic">No validated remediation yet.</div>
+                )}
               </div>
             </Panel>
 

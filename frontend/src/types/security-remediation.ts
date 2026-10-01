@@ -13,5 +13,6 @@ export interface RemediationAction {
   createdAt: string; // ISO date
   validatedAt?: string; // ISO date
   validationRunId?: string;
+  sourceRunId?: string;
   source: 'simulation';
 }

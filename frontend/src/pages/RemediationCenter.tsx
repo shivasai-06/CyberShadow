@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button';
 
 export function RemediationCenter() {
   const navigate = useNavigate();
-  const { remediations } = useCyberShadow();
+  const { remediations, effectivenessComparisons } = useCyberShadow();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const openCount = remediations.filter(r => r.status === 'OPEN').length;
@@ -15,6 +15,7 @@ export function RemediationCenter() {
   const validatedCount = remediations.filter(r => r.status === 'VALIDATED').length;
 
   const selectedRemediation = remediations.find(r => r.id === selectedId);
+  const comparison = selectedRemediation ? effectivenessComparisons.find(c => c.remediationId === selectedRemediation.id) : null;
 
   return (
     <div className="flex flex-col gap-6 h-full p-6 bg-[#030712] overflow-y-auto">
@@ -157,6 +158,47 @@ export function RemediationCenter() {
                       Run the scenario again with the appropriate defense ({selectedRemediation.relatedControl}) enabled and successfully protect the fictional environment.
                     </p>
                   </div>
+
+                  {comparison && (
+                    <div className="mt-8 border-t border-slate-800 pt-6">
+                      <h3 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.15em] mb-4">EFFECTIVENESS COMPARISON</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="bg-orange-950/20 border border-orange-900/30 p-4 rounded">
+                          <div className="text-[10px] text-orange-400 font-bold uppercase tracking-widest mb-2">BEFORE</div>
+                          <div className="text-sm font-semibold text-slate-200 mb-1">{comparison.before.outcome}</div>
+                          <div className="text-xs text-slate-400 mb-2">{comparison.before.findings.length} SECURITY {comparison.before.findings.length === 1 ? 'FINDING' : 'FINDINGS'}</div>
+                          {comparison.before.relevantControlActive && (
+                            <div className="text-[10px] text-slate-500 font-mono mt-2 border-t border-orange-900/30 pt-2">
+                              Simulated Control: {comparison.control} (Active)
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="bg-green-950/20 border border-green-900/30 p-4 rounded">
+                          <div className="text-[10px] text-green-400 font-bold uppercase tracking-widest mb-2">AFTER</div>
+                          <div className="text-sm font-semibold text-slate-200 mb-1">{comparison.after.outcome}</div>
+                          <div className="text-xs text-slate-400 mb-2">{comparison.after.findings.length} SECURITY {comparison.after.findings.length === 1 ? 'FINDING' : 'FINDINGS'}</div>
+                          {comparison.after.relevantControlActive && (
+                            <div className="text-[10px] text-slate-500 font-mono mt-2 border-t border-green-900/30 pt-2">
+                              Simulated Control: {comparison.control} (Active)
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="bg-[#0b1120] border border-slate-700/50 p-4 rounded">
+                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">WHAT CHANGED</h4>
+                        <ul className="text-xs text-slate-300 space-y-1">
+                          <li>• {comparison.explanation}</li>
+                          {comparison.findingsRemoved > 0 && (
+                            <li>• {comparison.findingsRemoved} simulated finding{comparison.findingsRemoved > 1 ? 's' : ''} resolved.</li>
+                          )}
+                          <li>• <strong>Result:</strong> {comparison.outcome.replace('_', ' ')}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               
