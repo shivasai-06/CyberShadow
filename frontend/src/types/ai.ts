@@ -43,4 +43,9 @@ export interface AIReasoning {
   commonMistake?: string;
   practicalHabit?: string;
   focusedPractice?: string;
+  learnerLevel?: string;
+  masteryConnection?: string;
+  mistakePattern?: string;
+  reinforcementReason?: string;
+  adaptivePractice?: string;
 }

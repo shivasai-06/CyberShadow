@@ -30,6 +30,35 @@ def generate_fallback_response(context: AIAgentContext, error_message: str) -> A
     elif outcome == "RECOVERED":
         explanation += " The active defenses and response allowed recovery from the simulated threat."
         
+    # Scenario specific adaptive practice
+    category = context.currentScenario.get('category', '').lower() if context.currentScenario else ''
+    title = context.currentScenario.get('title', '').lower() if context.currentScenario else ''
+    
+    adaptive_practice = "Review the scenario documentation to reinforce core concepts."
+    if "phishing" in category or "phishing" in title:
+        adaptive_practice = "Identify warning signs in a fictional phishing message and practice verifying the sender independently."
+    elif "attachment" in category or "attachment" in title or "malware" in category:
+        adaptive_practice = "Identify suspicious attachment indicators in a fictional email."
+    elif "password" in category or "password" in title or "credential" in category:
+        adaptive_practice = "Compare fictional strong and weak password characteristics."
+    elif "cloud" in category or "cloud" in title or "exposure" in title:
+        adaptive_practice = "Practice selecting appropriate fictional privacy/access settings."
+    elif "social" in category or "social engineering" in title:
+        adaptive_practice = "Practice verifying a fictional request before sharing information."
+    elif "data loss" in category or "backup" in category or "ransomware" in title:
+        adaptive_practice = "Practice identifying which backup control would enable recovery."
+
+    # Analyze history for mistake pattern
+    mistake_pattern = "No repeated mistake pattern is established yet."
+    if context.recentHistory and len(context.recentHistory) >= 2:
+        risky_count = 0
+        for record in context.recentHistory[:3]:
+            for decision in record.get("decisionsMade", []):
+                if not decision.get("isProtective", True):
+                    risky_count += 1
+        if risky_count >= 2:
+            mistake_pattern = "Recent history shows multiple risky decisions during simulations."
+
     reasoning = Reasoning(
         situation=f"The {scenario} simulation resulted in a {outcome} state.",
         cause="The outcome was determined by the combination of active defenses and user decisions.",
@@ -44,7 +73,12 @@ def generate_fallback_response(context: AIAgentContext, error_message: str) -> A
         defenseLesson="Active defenses are necessary to block threats.",
         commonMistake="Ignoring the context of a simulated scenario.",
         practicalHabit="Review security configurations and logs regularly.",
-        focusedPractice="Try the scenario again with different choices to see the alternate outcomes."
+        focusedPractice="Try the scenario again with different choices to see the alternate outcomes.",
+        learnerLevel=f"Assessed level: {context.learner.get('experienceLevel', 'Unknown')}" if context.learner else "Assessed level: Unknown",
+        masteryConnection=f"Current mastery: {context.learning.get('overallMastery', 0)}%" if context.learning else "Current mastery: Unknown",
+        mistakePattern=mistake_pattern,
+        reinforcementReason=f"Recommended for practice: {context.recommendations.get('recommendedNextPractice', 'General practice')}" if context.recommendations else "General practice recommended.",
+        adaptivePractice=adaptive_practice
     )
     
     return AgentResponse(
@@ -161,6 +195,7 @@ IDENTIFY -> what weakness or strength was demonstrated?
 LEARN -> what cybersecurity concept should the learner understand?
 DEFEND -> what defensive principle matters?
 REFLECT -> what common mistake should the learner avoid?
+ADAPT -> how does this relate to their learning pattern?
 PRACTICE -> what single focused activity should the learner do next?
 
 Adapt explanations to the specific scenario. Focus on educational principles.
@@ -187,7 +222,12 @@ JSON Structure:
     "defenseLesson": "DEFEND: What defensive principle matters?",
     "commonMistake": "REFLECT: What common mistake should the learner avoid?",
     "practicalHabit": "PRACTICE: What safe defensive habit should be built?",
-    "focusedPractice": "PRACTICE: What ONE small safe learning activity should they do?"
+    "focusedPractice": "PRACTICE: What ONE small safe learning activity should they do?",
+    "learnerLevel": "ADAPT: Brief description of current level.",
+    "masteryConnection": "ADAPT: How this relates to existing mastery.",
+    "mistakePattern": "ADAPT: Repeated risky pattern (or state none established).",
+    "reinforcementReason": "ADAPT: Why reinforce this concept.",
+    "adaptivePractice": "PRACTICE: Short practical learning exercise."
   }
 }
 """

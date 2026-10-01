@@ -69,7 +69,8 @@ export function buildAIAgentContext(
       scenarioName: h.scenarioName,
       difficulty: h.difficulty,
       result: h.result,
-      risk: h.risk
+      risk: h.risk,
+      decisionsMade: h.decisionsMade
     }));
   }
 

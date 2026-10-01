@@ -37,6 +37,11 @@ class Reasoning(BaseModel):
     commonMistake: Optional[str] = None
     practicalHabit: Optional[str] = None
     focusedPractice: Optional[str] = None
+    learnerLevel: Optional[str] = None
+    masteryConnection: Optional[str] = None
+    mistakePattern: Optional[str] = None
+    reinforcementReason: Optional[str] = None
+    adaptivePractice: Optional[str] = None
 
 class AgentResponse(BaseModel):
     success: bool

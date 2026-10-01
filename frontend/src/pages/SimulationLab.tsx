@@ -138,7 +138,7 @@ export function SimulationLab() {
           const ctx = buildAIAgentContext(
              settings,
              learningProfile,
-             history,
+             [completedRecord, ...history.filter(h => h.id !== completedRecord.id)],
              scenario as any,
              learningUpdate?.practiceNext,
              completedRecord
@@ -434,6 +434,7 @@ export function SimulationLab() {
                 )}
 
                 {aiState === 'success' && aiResult?.reasoning && (
+                  <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2 p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
                       <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">SECURITY CONCEPT</div>
@@ -480,6 +481,38 @@ export function SimulationLab() {
                       <div className="text-sm text-white">{aiResult.reasoning.nextLearningStep || aiResult.recommendation}</div>
                     </div>
                   </div>
+                  
+                  {/* ADAPTIVE LEARNING */}
+                  <div className="mt-6 border border-violet-500/30 bg-[#060a14] rounded-lg overflow-hidden">
+                    <div className="bg-violet-950/20 px-5 py-3 border-b border-violet-500/30">
+                      <div className="text-[10px] font-bold text-violet-400 uppercase tracking-widest flex items-center gap-2">
+                        <Activity size={12} /> ADAPTIVE LEARNING
+                      </div>
+                    </div>
+                    <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">LEARNER LEVEL</div>
+                        <div className="text-sm text-slate-300">{aiResult.reasoning.learnerLevel || 'Not specified.'}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">MASTERY CONNECTION</div>
+                        <div className="text-sm text-slate-300">{aiResult.reasoning.masteryConnection || 'Not specified.'}</div>
+                      </div>
+                      <div className="md:col-span-2">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">MISTAKE PATTERN</div>
+                        <div className="text-sm text-slate-300">{aiResult.reasoning.mistakePattern || 'Not specified.'}</div>
+                      </div>
+                      <div className="md:col-span-2">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">WHY THIS MATTERS</div>
+                        <div className="text-sm text-slate-300">{aiResult.reasoning.reinforcementReason || 'Not specified.'}</div>
+                      </div>
+                      <div className="md:col-span-2">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">ADAPTIVE PRACTICE</div>
+                        <div className="text-sm text-slate-300">{aiResult.reasoning.adaptivePractice || 'Not specified.'}</div>
+                      </div>
+                    </div>
+                  </div>
+                </>
                 )}
               </div>
 
