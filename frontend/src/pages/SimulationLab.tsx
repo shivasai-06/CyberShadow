@@ -21,6 +21,8 @@ import { buildAIAgentContext } from '../services/aiContext';
 import { SIMULATION_SCENARIOS } from '../data/simulationScenarios';
 import type { HistoryRecord } from '../types/history';
 import type { SimulationLearningUpdate } from '../types/learning';
+import { runSecurityAnalysis } from '../engine/securityAnalysisEngine';
+import type { SecurityAnalysisResult } from '../types/security-analysis';
 
 export function SimulationLab() {
   const navigate = useNavigate();
@@ -46,6 +48,7 @@ export function SimulationLab() {
   const [learningUpdate, setLearningUpdate] = useState<SimulationLearningUpdate | null>(null);
   
   const [completedRecord, setCompletedRecord] = useState<HistoryRecord | null>(null);
+  const [securityAnalysis, setSecurityAnalysis] = useState<SecurityAnalysisResult | null>(null);
   const [aiState, setAiState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [aiResult, setAiResult] = useState<AgentResponse | null>(null);
   
@@ -116,6 +119,7 @@ export function SimulationLab() {
           update.practiceNext = recommendations[0] || undefined;
           setLearningUpdate(update);
           setCompletedRecord(newRecord);
+          setSecurityAnalysis(runSecurityAnalysis(newRecord));
           
           addSimulationResult(newRecord, simulationPlan.isBlocked);
         }
@@ -192,6 +196,7 @@ export function SimulationLab() {
     setLearningUpdate(null);
     setReplayOfRecord(null);
     setCompletedRecord(null);
+    setSecurityAnalysis(null);
     setAiState('idle');
     setAiResult(null);
   };
@@ -206,6 +211,7 @@ export function SimulationLab() {
     setCurrentStepIndex(0);
     setLearningUpdate(null);
     setCompletedRecord(null);
+    setSecurityAnalysis(null);
     setAiState('idle');
     setAiResult(null);
   };
@@ -404,6 +410,103 @@ export function SimulationLab() {
                   learningUpdate={learningUpdate}
                 />
               </div>
+
+              {/* DETERMINISTIC SECURITY ANALYSIS */}
+              {securityAnalysis && (
+                <div className="mt-8 border-t border-slate-800/50 pt-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Activity className="text-blue-500" size={20} />
+                    <div>
+                      <h3 className="text-lg font-bold text-white tracking-wide">SECURITY ANALYSIS</h3>
+                      <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mt-1">
+                        DETERMINISTIC SECURITY ANALYSIS • SIMULATION ONLY
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg mb-6">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4 pb-4 border-b border-slate-800/50">
+                      <div>
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">OVERALL SEVERITY</div>
+                        <div className={`font-bold ${
+                          securityAnalysis.overallSeverity === 'CRITICAL' ? 'text-red-500' :
+                          securityAnalysis.overallSeverity === 'HIGH' ? 'text-orange-500' :
+                          securityAnalysis.overallSeverity === 'MEDIUM' ? 'text-amber-500' : 'text-green-500'
+                        }`}>
+                          {securityAnalysis.overallSeverity}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">AFFECTED ASSETS</div>
+                        <div className="text-sm text-slate-300">
+                          {securityAnalysis.affectedAssets.length > 0 ? securityAnalysis.affectedAssets.join(', ') : 'None'}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-300">{securityAnalysis.summary}</p>
+                  </div>
+
+                  {securityAnalysis.positiveControls.length > 0 && (
+                    <div className="mb-6">
+                      <div className="text-[10px] font-bold text-green-500 uppercase tracking-widest mb-3">SUCCESSFUL DEFENSES</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {securityAnalysis.positiveControls.map((pc, idx) => (
+                          <div key={idx} className="p-3 border border-green-500/30 bg-green-950/10 rounded text-sm text-green-400 flex items-start gap-2">
+                            <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
+                            <span>{pc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {securityAnalysis.findings.length > 0 && (
+                    <div>
+                      <div className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mb-3">SECURITY FINDINGS</div>
+                      <div className="space-y-4">
+                        {securityAnalysis.findings.map(finding => (
+                          <div key={finding.id} className="p-5 border border-slate-800/80 bg-[#0b1120] rounded-lg">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h4 className="text-md font-bold text-white">{finding.title}</h4>
+                                <div className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+                                  {finding.category} • {finding.affectedAsset}
+                                </div>
+                              </div>
+                              <span className={`px-2 py-1 text-[10px] font-bold rounded ${
+                                finding.severity === 'CRITICAL' ? 'bg-red-950/50 text-red-400 border border-red-500/30' :
+                                finding.severity === 'HIGH' ? 'bg-orange-950/50 text-orange-400 border border-orange-500/30' :
+                                'bg-amber-950/50 text-amber-400 border border-amber-500/30'
+                              }`}>
+                                {finding.severity}
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">WHAT HAPPENED</div>
+                                <div className="text-slate-300">{finding.description}</div>
+                              </div>
+                              <div>
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">CAUSE</div>
+                                <div className="text-slate-300">{finding.cause}</div>
+                              </div>
+                              <div>
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">IMPACT</div>
+                                <div className="text-slate-300">{finding.impact}</div>
+                              </div>
+                              <div>
+                                <div className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest mb-1">RECOMMENDATION</div>
+                                <div className="text-cyan-100">{finding.recommendation}</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* AI REASONING */}
               <div className="mt-8 border-t border-slate-800/50 pt-8">
