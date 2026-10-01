@@ -2,7 +2,7 @@ import { useCyberShadow } from '../../contexts/CyberShadowContext';
 import { BookOpen } from 'lucide-react';
 
 export function SecurityLearningImpactOverview() {
-  const { securityLearningImpacts } = useCyberShadow();
+  const { securityLearningImpacts, securityPractices } = useCyberShadow();
 
   if (securityLearningImpacts.length === 0) return null;
 
@@ -17,21 +17,35 @@ export function SecurityLearningImpactOverview() {
       </p>
       
       <div className="space-y-3">
-        {securityLearningImpacts.slice(0, 5).map(impact => (
-          <div key={impact.id} className="p-3 bg-slate-900/50 border border-slate-800/50 rounded flex items-center justify-between gap-4">
-            <div className="flex flex-col min-w-0">
-              <div className="text-sm font-medium text-slate-200 truncate">{impact.skillName}</div>
-              <div className="text-xs text-slate-500 truncate">{impact.explanation}</div>
+        {securityLearningImpacts.slice(0, 5).map(impact => {
+          const practice = securityPractices.find(p => p.source === impact.id);
+          
+          return (
+            <div key={impact.id} className="p-3 bg-slate-900/50 border border-slate-800/50 rounded flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col min-w-0">
+                  <div className="text-sm font-medium text-slate-200 truncate">{impact.skillName}</div>
+                  <div className="text-xs text-slate-500 truncate">{impact.explanation}</div>
+                </div>
+                <div className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest whitespace-nowrap ${
+                  impact.learningState === 'DEMONSTRATED' ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/30' :
+                  impact.learningState === 'DEVELOPING' ? 'bg-amber-950/40 text-amber-400 border border-amber-900/30' :
+                  'bg-rose-950/40 text-rose-400 border border-rose-900/30'
+                }`}>
+                  {impact.learningState}
+                </div>
+              </div>
+              
+              {practice && practice.status === 'AVAILABLE' && (
+                <div className="border-t border-slate-800/50 pt-3 mt-1 flex justify-between items-center">
+                  <div className="text-xs text-slate-400">
+                    <strong className="text-slate-300">Recommended Practice:</strong> {practice.title}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest whitespace-nowrap ${
-              impact.learningState === 'DEMONSTRATED' ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/30' :
-              impact.learningState === 'DEVELOPING' ? 'bg-amber-950/40 text-amber-400 border border-amber-900/30' :
-              'bg-rose-950/40 text-rose-400 border border-rose-900/30'
-            }`}>
-              {impact.learningState}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

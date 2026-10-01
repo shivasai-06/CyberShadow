@@ -9,15 +9,18 @@ import { CategoryProgress } from '../components/learning-path/CategoryProgress';
 import { ScenarioProgression } from '../components/learning-path/ScenarioProgression';
 import { RemediationPrompt } from '../components/learning-path/RemediationPrompt';
 import { SecurityLearningSignals } from '../components/learning-path/SecurityLearningSignals';
+import { SecurityPracticeCard } from '../components/security-practice/SecurityPracticeCard';
 
 export function LearningPath() {
-  const { learningProfile, history, remediations } = useCyberShadow();
+  const { learningProfile, history, remediations, securityPractices } = useCyberShadow();
   
   const openCount = remediations.filter(r => r.status === 'OPEN' || r.status === 'IN_PROGRESS').length;
   
   // Generate recommendations to drive Current Focus and Next Simulation
   const recommendations = generatePracticeRecommendations(learningProfile, history);
   const primaryRecommendation = recommendations[0];
+  
+  const recommendedPractice = securityPractices.find(p => p.status === 'AVAILABLE');
 
   return (
     <div className="space-y-8 pb-12 max-w-[1200px] mx-auto animate-in fade-in duration-500">
@@ -41,6 +44,12 @@ export function LearningPath() {
             <div className="lg:col-span-2 space-y-8">
               <SkillProgressGrid profile={learningProfile} />
               <SecurityLearningSignals />
+              {recommendedPractice && (
+                <div className="space-y-4">
+                  <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">ADAPTIVE PRACTICE</h3>
+                  <SecurityPracticeCard practice={recommendedPractice} />
+                </div>
+              )}
               <ScenarioProgression history={history} primaryRecommendation={primaryRecommendation} />
             </div>
             

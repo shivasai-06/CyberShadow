@@ -16,6 +16,8 @@ import type { EffectivenessComparison } from '../types/remediation-effectiveness
 import { getRemediationEffectiveness } from '../engine/remediationEffectivenessEngine';
 import type { SecurityLearningImpact } from '../types/security-learning';
 import { deriveSecurityLearningImpacts } from '../engine/securityLearningEngine';
+import type { SecurityPracticeTask } from '../types/security-practice';
+import { generateAdaptivePractices } from '../engine/securityPracticeEngine';
 
 export type SecurityControlsState = Record<ControlId, boolean>;
 
@@ -40,6 +42,7 @@ export interface CyberShadowContextValue {
   remediations: RemediationAction[];
   effectivenessComparisons: EffectivenessComparison[];
   securityLearningImpacts: SecurityLearningImpact[];
+  securityPractices: SecurityPracticeTask[];
 
   // Actions
   updateSettings: (newSettings: AppSettings) => void;
@@ -56,6 +59,9 @@ export interface CyberShadowContextValue {
   // Phase 5.3 Remediation Actions
   updateRemediationStatus: (id: string, status: RemediationAction['status']) => void;
   resetRemediations: () => void;
+
+  // Phase 5.6 Practice Actions
+  completeSecurityPractice: (id: string, isCorrect: boolean, explanation: string) => void;
 }
 
 const CyberShadowContext = createContext<CyberShadowContextValue | undefined>(undefined);
@@ -69,6 +75,10 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
   const [learningProgress, setLearningProgress] = useState<LearningProgressMetrics>(() => getStoredData(STORAGE_KEYS.LEARNING_PROGRESS, MOCK_LEARNING_PROGRESS));
   const [learningProfile, setLearningProfile] = useState<LearningProfile>(() => getStoredData(STORAGE_KEYS.LEARNING_PROFILE, initializeLearningProfile()));
   const [remediations, setRemediations] = useState<RemediationAction[]>(() => getStoredData(STORAGE_KEYS.REMEDIATIONS, []));
+  const [completedSecurityPractices, setCompletedSecurityPractices] = useState<SecurityPracticeTask[]>(() => {
+    const saved = localStorage.getItem('cybershadow.securityPractice');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // Sync state changes to localStorage
   useEffect(() => { setStoredData(STORAGE_KEYS.SETTINGS, settings); }, [settings]);
@@ -78,6 +88,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
   useEffect(() => { setStoredData(STORAGE_KEYS.LEARNING_PROGRESS, learningProgress); }, [learningProgress]);
   useEffect(() => { setStoredData(STORAGE_KEYS.LEARNING_PROFILE, learningProfile); }, [learningProfile]);
   useEffect(() => { setStoredData(STORAGE_KEYS.REMEDIATIONS, remediations); }, [remediations]);
+  useEffect(() => { localStorage.setItem('cybershadow.securityPractice', JSON.stringify(completedSecurityPractices)); }, [completedSecurityPractices]);
 
   const securityPosture = useMemo(() => buildSecurityPosture(history), [history]);
 
@@ -93,6 +104,12 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
   const securityLearningImpacts = useMemo(() => {
     return deriveSecurityLearningImpacts(remediations, effectivenessComparisons);
   }, [remediations, effectivenessComparisons]);
+
+  const securityPractices = useMemo(() => {
+    const available = generateAdaptivePractices(securityLearningImpacts, completedSecurityPractices);
+    // Return both available (generated dynamically) and completed (persisted)
+    return [...available, ...completedSecurityPractices];
+  }, [securityLearningImpacts, completedSecurityPractices]);
 
   // Actions
   const updateSettings = (newSettings: AppSettings) => setSettings(newSettings);
@@ -212,6 +229,23 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     setLearningProgress(MOCK_LEARNING_PROGRESS);
     setLearningProfile(initializeLearningProfile());
     setRemediations([]);
+    setCompletedSecurityPractices([]);
+    localStorage.removeItem('cybershadow.securityPractice');
+  };
+
+  const completeSecurityPractice = (id: string, isCorrect: boolean, explanation: string) => {
+    const practice = securityPractices.find(p => p.id === id);
+    if (!practice) return;
+
+    const completedPractice: SecurityPracticeTask = {
+      ...practice,
+      status: 'COMPLETED',
+      result: isCorrect ? 'PASSED' : 'NEEDS_PRACTICE',
+      explanation,
+      completedAt: new Date().toISOString()
+    };
+
+    setCompletedSecurityPractices(prev => [...prev, completedPractice]);
   };
 
   const value = useMemo(() => ({
@@ -225,6 +259,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     remediations,
     effectivenessComparisons,
     securityLearningImpacts,
+    securityPractices,
     updateSettings,
     updateSecurityControl,
     applySecurityPreset,
@@ -234,8 +269,9 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     updateLearningFromSimulation,
     resetLearningProgress,
     updateRemediationStatus,
-    resetRemediations
-  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture, remediations, effectivenessComparisons, securityLearningImpacts]);
+    resetRemediations,
+    completeSecurityPractice
+  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture, remediations, effectivenessComparisons, securityLearningImpacts, securityPractices]);
 
   return (
     <CyberShadowContext.Provider value={value}>

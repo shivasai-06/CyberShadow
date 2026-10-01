@@ -13,6 +13,7 @@ import { ReportPostureSummary } from '../components/reports/ReportPostureSummary
 import { ReportRemediationSummary } from '../components/reports/ReportRemediationSummary';
 import { ReportEffectivenessSummary } from '../components/reports/ReportEffectivenessSummary';
 import { ReportLearningImpactSummary } from '../components/reports/ReportLearningImpactSummary';
+import { ReportPracticeOutcomes } from '../components/reports/ReportPracticeOutcomes';
 
 export function Reports() {
   const navigate = useNavigate();
@@ -71,6 +72,8 @@ export function Reports() {
           <ReportEffectivenessSummary />
           
           <ReportLearningImpactSummary />
+          
+          <ReportPracticeOutcomes />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <ScenarioPerformance performance={MOCK_REPORT_DATA.scenarioPerformance} />

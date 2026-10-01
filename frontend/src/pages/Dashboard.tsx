@@ -11,7 +11,7 @@ import { PracticeRecommendation } from '../components/history/PracticeRecommenda
 export function Dashboard() {
   const navigate = useNavigate();
 
-  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture, remediations, effectivenessComparisons, securityLearningImpacts } = useCyberShadow();
+  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture, remediations, effectivenessComparisons, securityLearningImpacts, securityPractices } = useCyberShadow();
 
   const openRemediations = remediations.filter(r => r.status === 'OPEN').length;
   const inProgressRemediations = remediations.filter(r => r.status === 'IN_PROGRESS').length;
@@ -27,6 +27,7 @@ export function Dashboard() {
   const recommendations = generatePracticeRecommendations(learningProfile, historyRecords);
   const primaryRecommendation = recommendations[0];
   const strongestSkill = Object.values(learningProfile.skills).sort((a, b) => b.mastery - a.mastery)[0];
+  const nextPractice = securityPractices.find(p => p.status === 'AVAILABLE');
 
   return (
     <div className="space-y-6 pb-12">
@@ -213,7 +214,7 @@ export function Dashboard() {
             </div>
           </Panel>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Panel className="bg-[#0b1120] border-slate-800/80 p-5 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[11px] font-bold text-orange-500 uppercase tracking-[0.15em]">SECURITY ACTIONS</h2>
@@ -294,6 +295,26 @@ export function Dashboard() {
                       </span>
                     </div>
                   ))
+                )}
+              </div>
+            </Panel>
+
+            <Panel className="bg-[#0b1120] border-slate-800/80 p-5 flex flex-col">
+              <h3 className="text-[11px] font-bold text-emerald-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                <ShieldAlert size={14} /> NEXT PRACTICE
+              </h3>
+              
+              <div className="space-y-3 flex-1 flex flex-col justify-center">
+                {!nextPractice ? (
+                  <div className="text-xs text-slate-500 italic">No adaptive practice recommended right now.</div>
+                ) : (
+                  <div className="bg-slate-900/50 border border-slate-800 rounded p-3 text-center">
+                    <div className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mb-2">{nextPractice.skillName}</div>
+                    <div className="text-sm text-slate-200 font-medium mb-3">{nextPractice.title}</div>
+                    <Button variant="primary" size="sm" className="w-full text-[10px]" onClick={() => navigate('/learning-path')}>
+                      START
+                    </Button>
+                  </div>
                 )}
               </div>
             </Panel>

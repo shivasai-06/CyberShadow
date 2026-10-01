@@ -5,10 +5,11 @@ import { useCyberShadow } from '../contexts/CyberShadowContext';
 import { Panel } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { BookOpen } from 'lucide-react';
+import { SecurityPracticeCard } from '../components/security-practice/SecurityPracticeCard';
 
 export function RemediationCenter() {
   const navigate = useNavigate();
-  const { remediations, effectivenessComparisons } = useCyberShadow();
+  const { remediations, effectivenessComparisons, securityLearningImpacts, securityPractices } = useCyberShadow();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const openCount = remediations.filter(r => r.status === 'OPEN').length;
@@ -17,8 +18,8 @@ export function RemediationCenter() {
 
   const selectedRemediation = remediations.find(r => r.id === selectedId);
   const comparison = selectedRemediation ? effectivenessComparisons.find(c => c.remediationId === selectedRemediation.id) : null;
-  const { securityLearningImpacts } = useCyberShadow();
   const learningImpact = selectedRemediation ? securityLearningImpacts.find(i => i.remediationId === selectedRemediation.id) : null;
+  const recommendedPractice = learningImpact ? securityPractices.find(p => p.source === learningImpact.id && p.status === 'AVAILABLE') : null;
 
   return (
     <div className="flex flex-col gap-6 h-full p-6 bg-[#030712] overflow-y-auto">
@@ -229,6 +230,12 @@ export function RemediationCenter() {
                         <p className="text-xs text-slate-400 italic">
                           "{learningImpact.explanation}"
                         </p>
+                        {recommendedPractice && (
+                          <div className="mt-2 pt-3 border-t border-slate-800">
+                            <h4 className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-3">Recommended Practice</h4>
+                            <SecurityPracticeCard practice={recommendedPractice} />
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
