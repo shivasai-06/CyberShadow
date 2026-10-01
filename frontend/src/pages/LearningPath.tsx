@@ -8,6 +8,7 @@ import { SkillProgressGrid } from '../components/learning-path/SkillProgressGrid
 import { CategoryProgress } from '../components/learning-path/CategoryProgress';
 import { ScenarioProgression } from '../components/learning-path/ScenarioProgression';
 import { RemediationPrompt } from '../components/learning-path/RemediationPrompt';
+import { SecurityLearningSignals } from '../components/learning-path/SecurityLearningSignals';
 
 export function LearningPath() {
   const { learningProfile, history, remediations } = useCyberShadow();
@@ -39,6 +40,7 @@ export function LearningPath() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <SkillProgressGrid profile={learningProfile} />
+              <SecurityLearningSignals />
               <ScenarioProgression history={history} primaryRecommendation={primaryRecommendation} />
             </div>
             

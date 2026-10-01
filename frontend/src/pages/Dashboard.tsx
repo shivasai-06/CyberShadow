@@ -11,7 +11,7 @@ import { PracticeRecommendation } from '../components/history/PracticeRecommenda
 export function Dashboard() {
   const navigate = useNavigate();
 
-  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture, remediations, effectivenessComparisons } = useCyberShadow();
+  const { history: historyRecords, securityControls: controlsState, learningProfile, securityPosture, remediations, effectivenessComparisons, securityLearningImpacts } = useCyberShadow();
 
   const openRemediations = remediations.filter(r => r.status === 'OPEN').length;
   const inProgressRemediations = remediations.filter(r => r.status === 'IN_PROGRESS').length;
@@ -213,7 +213,7 @@ export function Dashboard() {
             </div>
           </Panel>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Panel className="bg-[#0b1120] border-slate-800/80 p-5 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[11px] font-bold text-orange-500 uppercase tracking-[0.15em]">SECURITY ACTIONS</h2>
@@ -272,6 +272,31 @@ export function Dashboard() {
                 </Button>
               </Panel>
             )}
+
+            <Panel className="bg-[#0b1120] border-slate-800/80 p-5 flex flex-col">
+              <h3 className="text-[11px] font-bold text-teal-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                <Activity size={14} /> LEARNING SIGNALS
+              </h3>
+              
+              <div className="space-y-3 flex-1">
+                {securityLearningImpacts.length === 0 ? (
+                  <div className="text-xs text-slate-500 italic">No security-driven learning signals yet.</div>
+                ) : (
+                  securityLearningImpacts.slice(0, 3).map(impact => (
+                    <div key={impact.id} className="flex justify-between items-center text-sm p-2 rounded bg-slate-900/50 border border-slate-800/50">
+                      <span className="text-slate-300 truncate mr-2">{impact.skillName}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest flex-shrink-0 ${
+                        impact.learningState === 'DEMONSTRATED' ? 'bg-emerald-950/40 text-emerald-400' :
+                        impact.learningState === 'DEVELOPING' ? 'bg-amber-950/40 text-amber-400' :
+                        'bg-rose-950/40 text-rose-400'
+                      }`}>
+                        {impact.learningState === 'DEMONSTRATED' ? 'DEMONSTRATED' : 'NEEDS PRACTICE'}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Panel>
           </div>
           
           <Panel className="flex flex-col relative overflow-hidden flex-1 min-h-[400px]">

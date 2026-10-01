@@ -4,6 +4,7 @@ import { Shield, ShieldAlert, ShieldCheck, Play, ArrowRight, Info, AlertTriangle
 import { useCyberShadow } from '../contexts/CyberShadowContext';
 import { Panel } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
+import { BookOpen } from 'lucide-react';
 
 export function RemediationCenter() {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ export function RemediationCenter() {
 
   const selectedRemediation = remediations.find(r => r.id === selectedId);
   const comparison = selectedRemediation ? effectivenessComparisons.find(c => c.remediationId === selectedRemediation.id) : null;
+  const { securityLearningImpacts } = useCyberShadow();
+  const learningImpact = selectedRemediation ? securityLearningImpacts.find(i => i.remediationId === selectedRemediation.id) : null;
 
   return (
     <div className="flex flex-col gap-6 h-full p-6 bg-[#030712] overflow-y-auto">
@@ -196,6 +199,36 @@ export function RemediationCenter() {
                           )}
                           <li>• <strong>Result:</strong> {comparison.outcome.replace('_', ' ')}</li>
                         </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {learningImpact && (
+                    <div className="mt-8 border-t border-slate-800 pt-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <BookOpen size={14} className="text-teal-400" />
+                        <h3 className="text-[11px] font-bold text-teal-400 uppercase tracking-[0.15em]">LEARNING CONNECTION</h3>
+                      </div>
+                      <div className="bg-[#0b1120] border border-teal-900/30 p-4 rounded flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-1">Related Skill</div>
+                            <div className="text-sm font-medium text-slate-200">{learningImpact.skillName}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mb-1">Learning Impact</div>
+                            <div className={`text-xs font-bold px-2 py-1 rounded uppercase tracking-widest ${
+                              learningImpact.learningState === 'DEMONSTRATED' ? 'bg-emerald-950/40 text-emerald-400' :
+                              learningImpact.learningState === 'DEVELOPING' ? 'bg-amber-950/40 text-amber-400' :
+                              'bg-rose-950/40 text-rose-400'
+                            }`}>
+                              {learningImpact.learningState}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-400 italic">
+                          "{learningImpact.explanation}"
+                        </p>
                       </div>
                     </div>
                   )}

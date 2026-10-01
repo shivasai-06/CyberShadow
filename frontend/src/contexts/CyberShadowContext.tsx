@@ -14,6 +14,8 @@ import { createRemediationFromFinding, validateRemediations } from '../engine/se
 import { runSecurityAnalysis } from '../engine/securityAnalysisEngine';
 import type { EffectivenessComparison } from '../types/remediation-effectiveness';
 import { getRemediationEffectiveness } from '../engine/remediationEffectivenessEngine';
+import type { SecurityLearningImpact } from '../types/security-learning';
+import { deriveSecurityLearningImpacts } from '../engine/securityLearningEngine';
 
 export type SecurityControlsState = Record<ControlId, boolean>;
 
@@ -37,6 +39,7 @@ export interface CyberShadowContextValue {
   securityPosture: SecurityPosture;
   remediations: RemediationAction[];
   effectivenessComparisons: EffectivenessComparison[];
+  securityLearningImpacts: SecurityLearningImpact[];
 
   // Actions
   updateSettings: (newSettings: AppSettings) => void;
@@ -85,6 +88,11 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
       .map(r => getRemediationEffectiveness(r, history))
       .filter(Boolean) as EffectivenessComparison[];
   }, [remediations, history]);
+
+  // Phase 5.5: Learning Impacts
+  const securityLearningImpacts = useMemo(() => {
+    return deriveSecurityLearningImpacts(remediations, effectivenessComparisons);
+  }, [remediations, effectivenessComparisons]);
 
   // Actions
   const updateSettings = (newSettings: AppSettings) => setSettings(newSettings);
@@ -216,6 +224,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     securityPosture,
     remediations,
     effectivenessComparisons,
+    securityLearningImpacts,
     updateSettings,
     updateSecurityControl,
     applySecurityPreset,
@@ -226,7 +235,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     resetLearningProgress,
     updateRemediationStatus,
     resetRemediations
-  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture, remediations, effectivenessComparisons]);
+  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture, remediations, effectivenessComparisons, securityLearningImpacts]);
 
   return (
     <CyberShadowContext.Provider value={value}>

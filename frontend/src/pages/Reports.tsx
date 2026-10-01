@@ -12,6 +12,7 @@ import { useCyberShadow } from '../contexts/CyberShadowContext';
 import { ReportPostureSummary } from '../components/reports/ReportPostureSummary';
 import { ReportRemediationSummary } from '../components/reports/ReportRemediationSummary';
 import { ReportEffectivenessSummary } from '../components/reports/ReportEffectivenessSummary';
+import { ReportLearningImpactSummary } from '../components/reports/ReportLearningImpactSummary';
 
 export function Reports() {
   const navigate = useNavigate();
@@ -68,6 +69,8 @@ export function Reports() {
           <ReportRemediationSummary remediations={remediations} />
           
           <ReportEffectivenessSummary />
+          
+          <ReportLearningImpactSummary />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <ScenarioPerformance performance={MOCK_REPORT_DATA.scenarioPerformance} />
