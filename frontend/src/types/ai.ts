@@ -36,4 +36,11 @@ export interface AIReasoning {
   defenseImpact?: string;
   learnerInsight?: string;
   nextLearningStep?: string;
+  learningConcept?: string;
+  securityConcept?: string;
+  decisionImpact?: string;
+  defenseLesson?: string;
+  commonMistake?: string;
+  practicalHabit?: string;
+  focusedPractice?: string;
 }

@@ -435,29 +435,45 @@ export function SimulationLab() {
 
                 {aiState === 'success' && aiResult?.reasoning && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2 p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">SECURITY CONCEPT</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.securityConcept || aiResult.reasoning.learningConcept || 'General Cybersecurity'}</div>
+                    </div>
                     <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">SITUATION</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">WHAT HAPPENED</div>
                       <div className="text-sm text-slate-300">{aiResult.reasoning.situation || aiResult.explanation}</div>
                     </div>
                     <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">CAUSE</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">WHY IT HAPPENED</div>
                       <div className="text-sm text-slate-300">{aiResult.reasoning.cause || 'No specific cause identified.'}</div>
                     </div>
                     <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">KEY FACTOR</div>
-                      <div className="text-sm text-slate-300">{aiResult.reasoning.keyFactor || 'Not specified.'}</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">YOUR DECISION IMPACT</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.decisionImpact || aiResult.reasoning.defenseImpact || 'Not specified.'}</div>
+                    </div>
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">DEFENSE LESSON</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.defenseLesson || 'No specific defense lesson.'}</div>
                     </div>
                     <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
                       <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">SECURITY WEAKNESS</div>
                       <div className="text-sm text-slate-300">{aiResult.reasoning.securityWeakness || 'None highlighted.'}</div>
                     </div>
                     <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">DEFENSE IMPACT</div>
-                      <div className="text-sm text-slate-300">{aiResult.reasoning.defenseImpact || 'No specific defense impact.'}</div>
-                    </div>
-                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
                       <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">LEARNER INSIGHT</div>
                       <div className="text-sm text-slate-300">{aiResult.reasoning.learnerInsight || 'Keep practicing to improve skills.'}</div>
+                    </div>
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">COMMON MISTAKE</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.commonMistake || 'Not specified.'}</div>
+                    </div>
+                    <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">PRACTICAL HABIT</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.practicalHabit || 'Not specified.'}</div>
+                    </div>
+                    <div className="md:col-span-2 p-5 border border-slate-800/80 bg-[#060a14] rounded-lg">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">FOCUSED PRACTICE</div>
+                      <div className="text-sm text-slate-300">{aiResult.reasoning.focusedPractice || 'Not specified.'}</div>
                     </div>
                     <div className="md:col-span-2 p-5 border border-cyan-500/30 bg-cyan-950/20 rounded-lg">
                       <div className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest mb-2">NEXT LEARNING STEP</div>

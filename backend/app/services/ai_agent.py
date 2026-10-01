@@ -33,20 +33,43 @@ def run_agent(request: AgentRequest) -> AgentResponse:
             prompt += f"SCENARIO CONTEXT:\n{json.dumps(request.context.currentScenario, indent=2)}\n\n"
             
         prompt += """
-Please respond ONLY with a valid JSON object matching this exact structure, with no markdown formatting or backticks around it:
+Please respond ONLY with a valid JSON object matching this exact structure, with no markdown formatting or backticks around it.
+The AI should answer: "What should this learner understand and practice because of this exact simulation?"
+The reasoning process should now follow:
+OBSERVE -> what happened?
+CONNECT -> which learner decision/control influenced the result?
+EXPLAIN -> why did that happen?
+IDENTIFY -> what weakness or strength was demonstrated?
+LEARN -> what cybersecurity concept should the learner understand?
+DEFEND -> what defensive principle matters?
+REFLECT -> what common mistake should the learner avoid?
+PRACTICE -> what single focused activity should the learner do next?
+
+Adapt explanations to the specific scenario. Focus on educational principles.
+Distinguish between COMPROMISED (explain what weakness allowed it) and BLOCKED (explain why defenses worked).
+Never provide real exploit instructions.
+
+JSON Structure:
 {
   "message": "A brief opening message or observation.",
   "explanation": "Explain why the simulated attack succeeded or failed, or explain the core concept.",
   "recommendation": "Suggest what the learner should practice or focus on.",
   "next_action": "A concrete next action they should take.",
   "reasoning": {
-    "situation": "What happened (from context)?",
-    "cause": "Which decision/control influenced it?",
-    "keyFactor": "Why did that factor matter?",
-    "securityWeakness": "What security weakness or strength does it demonstrate?",
+    "situation": "OBSERVE: What happened?",
+    "cause": "CONNECT: Which decision/control influenced it?",
+    "keyFactor": "EXPLAIN: Why did that happen?",
+    "securityWeakness": "IDENTIFY: What security weakness or strength does it demonstrate?",
     "defenseImpact": "What is the effect of existing defenses?",
     "learnerInsight": "What should the learner understand?",
-    "nextLearningStep": "What should the learner do next?"
+    "nextLearningStep": "What should the learner do next?",
+    "learningConcept": "LEARN: What cybersecurity concept should the learner understand?",
+    "securityConcept": "LEARN: What specific security concept was demonstrated?",
+    "decisionImpact": "CONNECT: How did the learner's decision impact the outcome?",
+    "defenseLesson": "DEFEND: What defensive principle matters?",
+    "commonMistake": "REFLECT: What common mistake should the learner avoid?",
+    "practicalHabit": "PRACTICE: What safe defensive habit should be built?",
+    "focusedPractice": "PRACTICE: What ONE small safe learning activity should they do?"
   }
 }
 """
@@ -56,15 +79,19 @@ Please respond ONLY with a valid JSON object matching this exact structure, with
         
         # Parse JSON
         try:
-            # Clean up potential markdown code blocks returned by Gemini
+            import re
             cleaned_response = raw_response.strip()
-            if cleaned_response.startswith("```json"):
-                cleaned_response = cleaned_response[7:]
-            if cleaned_response.startswith("```"):
-                cleaned_response = cleaned_response[3:]
-            if cleaned_response.endswith("```"):
-                cleaned_response = cleaned_response[:-3]
-            cleaned_response = cleaned_response.strip()
+            match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', cleaned_response, re.DOTALL)
+            if match:
+                cleaned_response = match.group(1).strip()
+            else:
+                if cleaned_response.startswith("```json"):
+                    cleaned_response = cleaned_response[7:]
+                if cleaned_response.startswith("```"):
+                    cleaned_response = cleaned_response[3:]
+                if cleaned_response.endswith("```"):
+                    cleaned_response = cleaned_response[:-3]
+                cleaned_response = cleaned_response.strip()
             
             data = json.loads(cleaned_response)
             

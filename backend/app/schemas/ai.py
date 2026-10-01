@@ -29,6 +29,13 @@ class Reasoning(BaseModel):
     defenseImpact: Optional[str] = None
     learnerInsight: Optional[str] = None
     nextLearningStep: Optional[str] = None
+    learningConcept: Optional[str] = None
+    securityConcept: Optional[str] = None
+    decisionImpact: Optional[str] = None
+    defenseLesson: Optional[str] = None
+    commonMistake: Optional[str] = None
+    practicalHabit: Optional[str] = None
+    focusedPractice: Optional[str] = None
 
 class AgentResponse(BaseModel):
     success: bool
