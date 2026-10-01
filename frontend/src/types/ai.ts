@@ -27,3 +27,13 @@ export interface AIAgentContext {
   };
   recentHistory?: Partial<HistoryRecord>[];
 }
+
+export interface AIReasoning {
+  situation?: string;
+  cause?: string;
+  keyFactor?: string;
+  securityWeakness?: string;
+  defenseImpact?: string;
+  learnerInsight?: string;
+  nextLearningStep?: string;
+}

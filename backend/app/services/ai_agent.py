@@ -9,7 +9,14 @@ logger = logging.getLogger(__name__)
 def run_agent(request: AgentRequest) -> AgentResponse:
     try:
         # Build prompt from context
-        prompt = "You are a cybersecurity learning mentor. Analyze the following context and provide guidance.\n\n"
+        prompt = "You are the CyberShadow educational reasoning agent.\n\n"
+        prompt += "CyberShadow is a fictional cybersecurity learning and simulation environment.\n"
+        prompt += "You receive structured simulation and learner context.\n"
+        prompt += "Reason only from the supplied context. Do not perform real-world cybersecurity actions.\n"
+        prompt += "Do not invent facts. Do not change simulation outcomes. Do not change security controls.\n"
+        prompt += "Do not calculate or modify mastery.\n"
+        prompt += "Explain relationships between: simulation outcome, learner decisions, security controls, learning skills, and recommended practice.\n"
+        prompt += "Return structured educational reasoning.\n\n"
         prompt += f"Task/Message: {request.message}\n\n"
         
         if request.context.currentSimulation:
@@ -31,7 +38,16 @@ Please respond ONLY with a valid JSON object matching this exact structure, with
   "message": "A brief opening message or observation.",
   "explanation": "Explain why the simulated attack succeeded or failed, or explain the core concept.",
   "recommendation": "Suggest what the learner should practice or focus on.",
-  "next_action": "A concrete next action they should take."
+  "next_action": "A concrete next action they should take.",
+  "reasoning": {
+    "situation": "What happened (from context)?",
+    "cause": "Which decision/control influenced it?",
+    "keyFactor": "Why did that factor matter?",
+    "securityWeakness": "What security weakness or strength does it demonstrate?",
+    "defenseImpact": "What is the effect of existing defenses?",
+    "learnerInsight": "What should the learner understand?",
+    "nextLearningStep": "What should the learner do next?"
+  }
 }
 """
         
@@ -58,18 +74,20 @@ Please respond ONLY with a valid JSON object matching this exact structure, with
                 explanation=data.get("explanation", "No detailed explanation provided."),
                 recommendation=data.get("recommendation", "Continue practicing."),
                 next_action=data.get("next_action", "Review your learning path."),
+                reasoning=data.get("reasoning"),
                 error=None
             )
         except json.JSONDecodeError:
             logger.warning(f"Failed to parse Gemini response as JSON. Raw response: {raw_response}")
             # Graceful fallback when parsing fails
             return AgentResponse(
-                success=True,
+                success=False,
                 message="I analyzed your simulation.",
                 explanation="The system generated an explanation but it couldn't be structured properly.",
                 recommendation="Review the scenario details and try again.",
                 next_action="Continue practicing.",
-                error=None
+                reasoning=None,
+                error="Failed to parse JSON response."
             )
             
     except ValueError as ve:

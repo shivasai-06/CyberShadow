@@ -1,6 +1,6 @@
 import { apiClient } from './apiClient';
 
-import type { AIAgentContext } from '../types/ai';
+import type { AIAgentContext, AIReasoning } from '../types/ai';
 
 export interface AIResponse {
   success: boolean;
@@ -19,6 +19,7 @@ export interface AgentResponse {
   explanation: string;
   recommendation: string;
   next_action: string;
+  reasoning?: AIReasoning;
   error?: string;
 }
 

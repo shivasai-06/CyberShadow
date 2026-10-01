@@ -21,10 +21,20 @@ class AgentRequest(BaseModel):
     message: str
     context: AIAgentContext
 
+class Reasoning(BaseModel):
+    situation: Optional[str] = None
+    cause: Optional[str] = None
+    keyFactor: Optional[str] = None
+    securityWeakness: Optional[str] = None
+    defenseImpact: Optional[str] = None
+    learnerInsight: Optional[str] = None
+    nextLearningStep: Optional[str] = None
+
 class AgentResponse(BaseModel):
     success: bool
     message: str
     explanation: str
     recommendation: str
     next_action: str
+    reasoning: Optional[Reasoning] = None
     error: Optional[str] = None
