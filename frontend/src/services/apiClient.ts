@@ -24,7 +24,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
       const data = await response.json();
       message = data.message || data.detail || message;
       code = data.code;
-    } catch (e) {
+    } catch {
       // Not JSON
       if (response.status === 404) message = 'Not Found';
       if (response.status >= 500) message = 'Server Error';

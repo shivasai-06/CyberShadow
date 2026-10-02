@@ -12,7 +12,7 @@ export function TopBar() {
       try {
         await healthApi.getBackendHealth();
         if (mounted) setIsBackendOnline(true);
-      } catch (err) {
+      } catch {
         if (mounted) setIsBackendOnline(false);
       }
     };

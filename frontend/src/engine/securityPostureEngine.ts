@@ -38,7 +38,7 @@ export function buildSecurityPosture(historyRecords: HistoryRecord[]): SecurityP
     let analysis;
     try {
       analysis = runSecurityAnalysis(record);
-    } catch (error) {
+    } catch {
       // Safely ignore legacy records that cannot be analyzed (e.g., missing defensesActive array)
       return;
     }

@@ -21,6 +21,7 @@ import { generateAdaptivePractices } from '../engine/securityPracticeEngine';
 
 export type SecurityControlsState = Record<ControlId, boolean>;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_SECURITY_CONTROLS: SecurityControlsState = {
   mfa: true,
   password_strength: true,
@@ -171,7 +172,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
       let analysis;
       try {
         analysis = runSecurityAnalysis(record);
-      } catch (e) {
+      } catch {
         // Safe fallback
       }
       
@@ -248,7 +249,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     setCompletedSecurityPractices(prev => [...prev, completedPractice]);
   };
 
-  const value = useMemo(() => ({
+  const value = {
     settings,
     securityControls,
     activePreset,
@@ -271,7 +272,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
     updateRemediationStatus,
     resetRemediations,
     completeSecurityPractice
-  }), [settings, securityControls, activePreset, history, learningProgress, learningProfile, securityPosture, remediations, effectivenessComparisons, securityLearningImpacts, securityPractices]);
+  };
 
   return (
     <CyberShadowContext.Provider value={value}>
@@ -280,6 +281,7 @@ export function CyberShadowProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCyberShadow() {
   const context = useContext(CyberShadowContext);
   if (context === undefined) {

@@ -13,8 +13,11 @@ interface ScenarioProgressionProps {
 
 const DIFFICULTY_ORDER = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 
+import { useState } from 'react';
+
 export function ScenarioProgression({ history, primaryRecommendation }: ScenarioProgressionProps) {
   const navigate = useNavigate();
+  const [now] = useState(() => Date.now());
   
   const scenariosByDifficulty = SIMULATION_SCENARIOS.reduce((acc, scenario) => {
     const d = scenario.difficulty.toUpperCase();
@@ -31,7 +34,7 @@ export function ScenarioProgression({ history, primaryRecommendation }: Scenario
     
     // Check if it was played recently and needs reinforcement
     const lastRun = scenarioHistory[0];
-    if (lastRun && (lastRun.riskyDecisions ?? 0) > 0 && Date.now() - new Date(lastRun.date).getTime() < 86400000 * 7) {
+    if (lastRun && (lastRun.riskyDecisions ?? 0) > 0 && now - new Date(lastRun.date).getTime() < 86400000 * 7) {
       return 'IN PRACTICE';
     }
     

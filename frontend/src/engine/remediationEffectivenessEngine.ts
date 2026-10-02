@@ -22,7 +22,7 @@ export function getRemediationEffectiveness(
   try {
     beforeAnalysis = runSecurityAnalysis(beforeRecord);
     afterAnalysis = runSecurityAnalysis(afterRecord);
-  } catch (e) {
+  } catch {
     return null;
   }
 

@@ -26,7 +26,7 @@ export function HistoryList({ records, onView }: HistoryListProps) {
           </thead>
           <tbody className="divide-y divide-slate-800/50">
             {records.map(record => {
-              const isBlocked = record.result === 'ATTACK BLOCKED';
+              const isBlocked = record.result === 'ATTACK BLOCKED' || record.result === 'DATA RECOVERED';
               return (
                 <tr key={record.id} className="hover:bg-[#060a14] transition-colors group">
                   <td className="p-4">

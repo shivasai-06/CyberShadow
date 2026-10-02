@@ -87,8 +87,8 @@ export function SimulationLab() {
 
           // Append to Simulation History
           const activeControls = Object.entries(securityControls)
-            .filter(([_, isActive]) => isActive)
-            .map(([key, _]) => key.toUpperCase().replace('_', ' ') + ' ENABLED');
+            .filter(([, isActive]) => isActive)
+            .map(([key]) => key.toUpperCase().replace('_', ' ') + ' ENABLED');
 
           const newRecord: HistoryRecord = {
             id: `hist_${Date.now()}`,
@@ -139,15 +139,14 @@ export function SimulationLab() {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [simulationState, currentStepIndex, simulationPlan, scenario, securityControls, isWaitingForDecision, addSimulationResult, learningProfile, history]);
+  }, [simulationState, currentStepIndex, simulationPlan, scenario, securityControls, isWaitingForDecision, addSimulationResult, learningProfile, history, replayOfRecord]);
 
   useEffect(() => {
     let controller = new AbortController();
     
     if (simulationState === 'completed' && aiState === 'idle' && completedRecord && settings) {
-      setAiState('loading');
-      
       const runAi = async () => {
+        setAiState('loading');
         try {
           const ctx = buildAIAgentContext(
              settings,
