@@ -1,6 +1,6 @@
 import { apiClient } from './apiClient';
 
-import type { AIAgentContext, AIReasoning } from '../types/ai';
+import type { AIAgentContext, AIReasoning, DashboardAIRequest, DashboardAIResponse, AssistantRequest, AssistantResponse } from '../types/ai';
 
 export interface AIResponse {
   success: boolean;
@@ -37,5 +37,19 @@ export const aiApi = {
    */
   async runAIAgent(context: AgentRequest, signal?: AbortSignal): Promise<AgentResponse> {
     return apiClient.post<AgentResponse>('/ai/agent', context, { signal });
+  },
+
+  /**
+   * Run the AI agent to get dashboard intelligence
+   */
+  async analyzeDashboard(context: DashboardAIRequest, signal?: AbortSignal): Promise<DashboardAIResponse> {
+    return apiClient.post<DashboardAIResponse>('/ai/dashboard', context, { signal });
+  },
+
+  /**
+   * Send a message to the AI Assistant
+   */
+  async sendMessage(request: AssistantRequest, signal?: AbortSignal): Promise<AssistantResponse> {
+    return apiClient.post<AssistantResponse>('/ai/assistant', request, { signal });
   }
 };

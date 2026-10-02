@@ -52,3 +52,38 @@ class AgentResponse(BaseModel):
     reasoning: Optional[Reasoning] = None
     error: Optional[str] = None
     source: Optional[str] = 'gemini'
+
+class DashboardAIRequest(BaseModel):
+    metrics: Dict[str, Any]
+    trend: str
+    recentHistory: List[Dict[str, Any]]
+    remediations: List[Dict[str, Any]]
+
+class DashboardAIResponse(BaseModel):
+    success: bool
+    summary: str
+    attention: str
+    defensiveInsight: str
+    nextStep: str
+    error: Optional[str] = None
+
+class AssistantMessage(BaseModel):
+    role: str
+    content: str
+
+class AssistantContext(BaseModel):
+    digitalTwin: Optional[Dict[str, Any]] = None
+    latestSimulation: Optional[Dict[str, Any]] = None
+    recentHistory: Optional[List[Dict[str, Any]]] = None
+    securityPosture: Optional[Dict[str, Any]] = None
+    remediations: Optional[Dict[str, Any]] = None
+    learning: Optional[Dict[str, Any]] = None
+
+class AssistantRequest(BaseModel):
+    messages: List[AssistantMessage]
+    context: AssistantContext
+
+class AssistantResponse(BaseModel):
+    success: bool
+    message: Optional[AssistantMessage] = None
+    error: Optional[str] = None

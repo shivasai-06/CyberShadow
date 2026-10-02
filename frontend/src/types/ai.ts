@@ -49,3 +49,44 @@ export interface AIReasoning {
   reinforcementReason?: string;
   adaptivePractice?: string;
 }
+
+export interface DashboardAIRequest {
+  metrics: any;
+  trend: string;
+  recentHistory: any[];
+  remediations: any[];
+}
+
+export interface DashboardAIResponse {
+  success: boolean;
+  summary: string;
+  attention: string;
+  defensiveInsight: string;
+  nextStep: string;
+  error?: string;
+}
+
+export interface AssistantMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface AssistantContext {
+  digitalTwin?: any;
+  latestSimulation?: any;
+  recentHistory?: any[];
+  securityPosture?: any;
+  remediations?: any;
+  learning?: any;
+}
+
+export interface AssistantRequest {
+  messages: AssistantMessage[];
+  context: AssistantContext;
+}
+
+export interface AssistantResponse {
+  success: boolean;
+  message?: AssistantMessage;
+  error?: string;
+}

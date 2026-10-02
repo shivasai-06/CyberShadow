@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   Cpu,
-  GraduationCap
+  GraduationCap,
+  Brain
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { name: 'Simulation Lab', path: '/simulation', icon: TestTube2 },
   { name: 'History', path: '/history', icon: History },
   { name: 'Reports', path: '/reports', icon: FileText },
+  { name: 'AI Assistant', path: '/ai-assistant', icon: Brain },
 ];
 
 const secondaryNavItems = [
