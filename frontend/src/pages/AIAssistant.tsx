@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Brain, Send, ShieldAlert, Cpu, CheckCircle2, XCircle, MessageSquare, Plus, Trash2, Clock, Lock, Zap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { aiApi } from '../services/aiApi';
@@ -238,7 +239,10 @@ export function AIAssistant() {
             {!user ? (
               <div className="p-4 text-center">
                 <Lock size={24} className="mx-auto mb-2 text-slate-500" />
-                <p className="text-xs text-slate-400">Sign in to save and access your conversation history.</p>
+                <p className="text-xs text-slate-400 mb-3">Sign in to save and access your conversation history.</p>
+                <Link to="/login" className="inline-block px-4 py-1.5 bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 rounded text-xs transition-colors">
+                  Sign In
+                </Link>
               </div>
             ) : conversationsLoading ? (
               <div className="p-4 text-center text-xs text-slate-400">Loading...</div>
@@ -406,7 +410,11 @@ export function AIAssistant() {
               <span className="text-slate-600">·</span>
               <Zap size={9} className="text-purple-400/60" />
               <span className="text-slate-500/80">Gemini Flash</span>
-              {!user && <span className="text-amber-500 ml-2">(Sign in to save history)</span>}
+              {!user && (
+                <span className="text-amber-500 ml-2">
+                  (<Link to="/login" className="underline hover:text-amber-400">Sign in</Link> to save history)
+                </span>
+              )}
             </div>
           </div>
         </div>

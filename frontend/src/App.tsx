@@ -15,6 +15,7 @@ import { SecurityCenter } from './pages/SecurityCenter';
 import { RemediationCenter } from './pages/RemediationCenter';
 import { Settings } from './pages/Settings';
 import { AIAssistant } from './pages/AIAssistant';
+import { Auth } from './pages/Auth';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="security/remediation" element={<RemediationCenter />} />
           <Route path="ai-assistant" element={<AIAssistant />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="login" element={<Auth />} />
         </Route>
       </Routes>
     </BrowserRouter>
