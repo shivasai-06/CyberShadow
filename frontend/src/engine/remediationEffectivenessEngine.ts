@@ -39,7 +39,8 @@ export function getRemediationEffectiveness(
     outcome: beforeRecord.result,
     findings: beforeAnalysis.findings,
     affectedAsset: remediation.affectedAsset,
-    relevantControlActive: isRelevantControl(beforeRecord)
+    relevantControlActive: isRelevantControl(beforeRecord),
+    attackPath: beforeRecord.attackPath
   };
 
   const after: BeforeAfterState = {
@@ -47,7 +48,8 @@ export function getRemediationEffectiveness(
     outcome: afterRecord.result,
     findings: afterAnalysis.findings,
     affectedAsset: remediation.affectedAsset,
-    relevantControlActive: isRelevantControl(afterRecord)
+    relevantControlActive: isRelevantControl(afterRecord),
+    attackPath: afterRecord.attackPath
   };
 
   const findingsRemoved = Math.max(0, before.findings.length - after.findings.length);

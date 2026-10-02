@@ -23,14 +23,19 @@ import type { HistoryRecord } from '../types/history';
 import type { SimulationLearningUpdate } from '../types/learning';
 import { runSecurityAnalysis } from '../engine/securityAnalysisEngine';
 import type { SecurityAnalysisResult } from '../types/security-analysis';
-import { FindingInvestigation } from '../components/security-analysis/FindingInvestigation';
 import { DefenseSuccessInvestigation } from '../components/security-analysis/DefenseSuccessInvestigation';
-import { createFindingInvestigation } from '../engine/securityInvestigationEngine';
+import { SecurityFindings } from '../components/results/SecurityFindings';
+import { RecommendedActions } from '../components/results/RecommendedActions';
+import { BeforeAfterResults } from '../components/results/BeforeAfterResults';
+import { VisualResults } from '../components/results/VisualResults';
+import { SecurityReport } from '../components/results/SecurityReport';
+import { buildComprehensiveResult } from '../engine/resultsAggregationEngine';
+import type { ComprehensiveSimulationResult } from '../types/results';
 
 export function SimulationLab() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addSimulationResult, securityControls, learningProfile, history, settings } = useCyberShadow();
+  const { addSimulationResult, securityControls, learningProfile, history, settings, effectivenessComparisons } = useCyberShadow();
   
   const initialScenarioId = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -52,9 +57,9 @@ export function SimulationLab() {
   
   const [completedRecord, setCompletedRecord] = useState<HistoryRecord | null>(null);
   const [securityAnalysis, setSecurityAnalysis] = useState<SecurityAnalysisResult | null>(null);
-  const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
   const [aiState, setAiState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [aiResult, setAiResult] = useState<AgentResponse | null>(null);
+  const [_comprehensiveResult, setComprehensiveResult] = useState<ComprehensiveSimulationResult | null>(null);
   
   const scenario = useMemo(() => SIMULATION_SCENARIOS.find(s => s.id === selectedScenarioId) || SIMULATION_SCENARIOS[0], [selectedScenarioId]);
   
@@ -125,12 +130,18 @@ export function SimulationLab() {
           setCompletedRecord(newRecord);
           const analysis = runSecurityAnalysis(newRecord);
           setSecurityAnalysis(analysis);
-          if (analysis.findings.length > 0) {
-            setSelectedFindingId(analysis.findings[0].id);
-          } else {
-            setSelectedFindingId(null);
-          }
           
+          const recentComp = effectivenessComparisons.find(c => c.afterRunId === newRecord.id);
+
+          const aggregated = buildComprehensiveResult({
+            record: newRecord,
+            learningProfile,
+            fullHistory: history,
+            precomputedLearningImpact: update,
+            remediationEffectiveness: recentComp
+          });
+          setComprehensiveResult(aggregated);
+
           addSimulationResult(newRecord, simulationPlan.isBlocked);
         }
       }, 2500); 
@@ -139,7 +150,7 @@ export function SimulationLab() {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [simulationState, currentStepIndex, simulationPlan, scenario, securityControls, isWaitingForDecision, addSimulationResult, learningProfile, history, replayOfRecord]);
+  }, [simulationState, currentStepIndex, simulationPlan, scenario, securityControls, isWaitingForDecision, addSimulationResult, learningProfile, history, replayOfRecord, effectivenessComparisons]);
 
   useEffect(() => {
     let controller = new AbortController();
@@ -165,6 +176,7 @@ export function SimulationLab() {
           const response = await aiApi.runAIAgent(req, controller.signal);
           if (response.success && response.reasoning) {
             setAiResult(response);
+            setComprehensiveResult(prev => prev ? { ...prev, aiExplanation: response.reasoning } : null);
             setAiState('success');
           } else {
             setAiState('error');
@@ -206,9 +218,9 @@ export function SimulationLab() {
     setReplayOfRecord(null);
     setCompletedRecord(null);
     setSecurityAnalysis(null);
-    setSelectedFindingId(null);
     setAiState('idle');
     setAiResult(null);
+    setComprehensiveResult(null);
   };
   
   const handleReplay = () => {
@@ -222,9 +234,9 @@ export function SimulationLab() {
     setLearningUpdate(null);
     setCompletedRecord(null);
     setSecurityAnalysis(null);
-    setSelectedFindingId(null);
     setAiState('idle');
     setAiResult(null);
+    setComprehensiveResult(null);
   };
 
   const handleExit = () => {
@@ -422,6 +434,16 @@ export function SimulationLab() {
                 />
               </div>
 
+              {/* PHASE 6.5: VISUAL RESULTS */}
+              {_comprehensiveResult && (
+                <VisualResults result={_comprehensiveResult} />
+              )}
+
+              {/* PHASE 6.6: SECURITY REPORT */}
+              {_comprehensiveResult && (
+                <SecurityReport result={_comprehensiveResult} />
+              )}
+
               {/* DETERMINISTIC SECURITY ANALYSIS */}
               {securityAnalysis && (
                 <div className="mt-8 border-t border-slate-800/50 pt-8">
@@ -435,27 +457,7 @@ export function SimulationLab() {
                     </div>
                   </div>
 
-                  <div className="p-5 border border-slate-800/80 bg-[#060a14] rounded-lg mb-6">
-                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4 pb-4 border-b border-slate-800/50">
-                      <div>
-                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">OVERALL SEVERITY</div>
-                        <div className={`font-bold ${
-                          securityAnalysis.overallSeverity === 'CRITICAL' ? 'text-red-500' :
-                          securityAnalysis.overallSeverity === 'HIGH' ? 'text-orange-500' :
-                          securityAnalysis.overallSeverity === 'MEDIUM' ? 'text-amber-500' : 'text-green-500'
-                        }`}>
-                          {securityAnalysis.overallSeverity}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">AFFECTED ASSETS</div>
-                        <div className="text-sm text-slate-300">
-                          {securityAnalysis.affectedAssets.length > 0 ? securityAnalysis.affectedAssets.join(', ') : 'None'}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-slate-300">{securityAnalysis.summary}</p>
-                  </div>
+
 
                   {securityAnalysis.findings.length === 0 && securityAnalysis.positiveControls.length > 0 && (
                     <div className="mb-6">
@@ -468,46 +470,19 @@ export function SimulationLab() {
                   )}
 
                   {securityAnalysis.findings.length > 0 && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="lg:col-span-1 space-y-3">
-                        <div className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mb-3">SECURITY FINDINGS</div>
-                        {securityAnalysis.findings.map(finding => (
-                          <button
-                            key={finding.id}
-                            onClick={() => setSelectedFindingId(finding.id)}
-                            className={`w-full text-left p-4 rounded-lg border transition-all ${
-                              selectedFindingId === finding.id 
-                                ? 'bg-[#0b1120] border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.1)]' 
-                                : 'bg-[#060a14] border-slate-800 hover:border-slate-600'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className="text-sm font-bold text-white truncate pr-2">{finding.title}</h4>
-                              <span className={`shrink-0 px-1.5 py-0.5 text-[8px] font-bold rounded ${
-                                finding.severity === 'CRITICAL' ? 'bg-red-950/50 text-red-400 border border-red-500/30' :
-                                finding.severity === 'HIGH' ? 'bg-orange-950/50 text-orange-400 border border-orange-500/30' :
-                                'bg-amber-950/50 text-amber-400 border border-amber-500/30'
-                              }`}>
-                                {finding.severity}
-                              </span>
-                            </div>
-                            <div className="text-[10px] text-slate-400 uppercase tracking-widest">
-                              {finding.affectedAsset}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                      <div className="lg:col-span-2">
-                        <div className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest mb-3 hidden lg:block">INVESTIGATION DETAILS</div>
-                        {selectedFindingId && (
-                          <FindingInvestigation 
-                            investigation={createFindingInvestigation(securityAnalysis.findings.find(f => f.id === selectedFindingId)!)} 
-                          />
-                        )}
-                      </div>
-                    </div>
+                    <>
+                      <SecurityFindings result={_comprehensiveResult} />
+                      <RecommendedActions result={_comprehensiveResult} />
+                    </>
                   )}
                 </div>
+              )}
+
+              {completedRecord && (
+                (() => {
+                  const recentComparison = effectivenessComparisons.find(c => c.afterRunId === completedRecord.id);
+                  return recentComparison ? <BeforeAfterResults comparison={recentComparison} /> : null;
+                })()
               )}
 
               {/* AI REASONING */}

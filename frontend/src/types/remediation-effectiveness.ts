@@ -8,6 +8,7 @@ export interface BeforeAfterState {
   findings: SecurityFinding[];
   affectedAsset: string;
   relevantControlActive: boolean;
+  attackPath: string[];
 }
 
 export interface EffectivenessComparison {
