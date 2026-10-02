@@ -63,35 +63,35 @@ export function Settings() {
         <SettingsSection title="LEARNING PROFILE">
           <ProfileSettings 
             profile={settings.profile} 
-            onUpdate={(profile) => handleSettingUpdate('profile', profile)} 
+            onUpdate={(profile) => handleSettingUpdate('profile', profile)}
           />
         </SettingsSection>
 
         <SettingsSection title="LEARNING PREFERENCES">
           <LearningPreferences 
             learning={settings.learning} 
-            onChange={(learning) => handleSettingUpdate('learning', learning)} 
+            onChange={(learning) => handleSettingUpdate('learning', learning)}
           />
         </SettingsSection>
 
         <SettingsSection title="SIMULATION PREFERENCES">
           <SimulationPreferences 
             simulation={settings.simulation} 
-            onChange={(simulation) => handleSettingUpdate('simulation', simulation)} 
+            onChange={(simulation) => handleSettingUpdate('simulation', simulation)}
           />
         </SettingsSection>
 
         <SettingsSection title="INTERFACE">
           <InterfacePreferences 
             ui={settings.interface} 
-            onChange={(ui) => handleSettingUpdate('interface', ui)} 
+            onChange={(ui) => handleSettingUpdate('interface', ui)}
           />
         </SettingsSection>
 
         <SettingsSection title="NOTIFICATIONS">
           <NotificationSettings 
             notifications={settings.notifications} 
-            onChange={(notifications) => handleSettingUpdate('notifications', notifications)} 
+            onChange={(notifications) => handleSettingUpdate('notifications', notifications)}
           />
         </SettingsSection>
 
