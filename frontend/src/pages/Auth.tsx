@@ -1,11 +1,22 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Shield, Mail, Key, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export function Auth() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate(from, { replace: true });
+    }
+  }, [user, authLoading, navigate, from]);
+
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,7 +51,7 @@ export function Auth() {
           password,
         });
         if (signInError) throw signInError;
-        navigate('/dashboard');
+        navigate(from, { replace: true });
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication.');
