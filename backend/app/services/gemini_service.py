@@ -45,7 +45,12 @@ def generate_response(prompt: str) -> str:
     except ValueError:
         raise
     except Exception as e:
-        logger.error(f"Gemini API error: {str(e)}")
+        error_type = type(e).__name__
+        status_code = getattr(e, "code", getattr(e, "status_code", "N/A"))
+        logger.error(
+            f"Gemini API request failed. "
+            f"Type: {error_type} | Status: {status_code} | Message: {str(e)}"
+        )
         raise RuntimeError("Failed to generate AI response due to an internal service error.")
 
 
@@ -101,5 +106,10 @@ def generate_assistant_response(
     except ValueError:
         raise
     except Exception as e:
-        logger.error(f"Gemini Assistant API error: {str(e)}")
+        error_type = type(e).__name__
+        status_code = getattr(e, "code", getattr(e, "status_code", "N/A"))
+        logger.error(
+            f"Gemini Assistant API request failed. "
+            f"Type: {error_type} | Status: {status_code} | Message: {str(e)}"
+        )
         raise RuntimeError("Failed to generate AI assistant response due to an internal service error.")
