@@ -17,6 +17,7 @@ import { RemediationCenter } from './pages/RemediationCenter';
 import { Settings } from './pages/Settings';
 import { AIAssistant } from './pages/AIAssistant';
 import { Auth } from './pages/Auth';
+import { Welcome } from './pages/Welcome';
 
 function App() {
   return (
@@ -24,9 +25,15 @@ function App() {
       <CyberShadowProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route element={<ProtectedRoute />}>
-                <Route index element={<Navigate to="/dashboard" replace />} />
+            {/* Public Welcome */}
+            <Route path="/" element={<Welcome />} />
+
+            {/* Public Auth */}
+            <Route path="/login" element={<Auth />} />
+
+            {/* Protected Application Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AppLayout />}>
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="digital-twin" element={<DigitalTwin />} />
                 <Route path="scenarios" element={<Scenarios />} />
@@ -42,7 +49,6 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
-              <Route path="login" element={<Auth />} />
             </Route>
           </Routes>
         </BrowserRouter>

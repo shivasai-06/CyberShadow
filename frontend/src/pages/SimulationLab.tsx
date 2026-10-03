@@ -18,6 +18,7 @@ import { updateLearningProfile } from '../engine/learningEngine';
 import { generatePracticeRecommendations } from '../engine/recommendationEngine';
 import { aiApi, type AgentResponse } from '../services/aiApi';
 import { buildAIAgentContext } from '../services/aiContext';
+import { CyberWorld3D } from '../components/simulation/CyberWorld3D';
 import { SIMULATION_SCENARIOS } from '../data/simulationScenarios';
 import type { HistoryRecord } from '../types/history';
 import type { SimulationLearningUpdate } from '../types/learning';
@@ -275,6 +276,17 @@ export function SimulationLab() {
         </div>
       </div>
 
+      {/* 3D CYBER WORLD - Always Visible */}
+      <div className="animate-in fade-in duration-500">
+        <CyberWorld3D
+          scenario={scenario as any}
+          simulationState={simulationState}
+          simulationPlan={simulationPlan}
+          currentStepIndex={currentStepIndex}
+          onStartSimulation={handleStart}
+        />
+      </div>
+
       {simulationState === 'idle' ? (
         // --- SETUP PHASE ---
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -345,7 +357,6 @@ export function SimulationLab() {
       ) : (
         // --- SIMULATION PHASE ---
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          
           {/* Controls Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#060a14] border border-slate-800/80 rounded-lg">
             <div className="flex items-center gap-4">
