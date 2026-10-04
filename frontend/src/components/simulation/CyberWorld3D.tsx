@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Html, RoundedBox } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import type { SimulationState, SimulationScenario } from '../../types/simulation';
 import type { SimulationRunPlan } from '../../engine/simulationEngine';
@@ -9,6 +9,15 @@ import { Button } from '../ui/Button';
 
 import { mapSimulationStepToScreen } from '../../utils/presentationMapper';
 import type { ScreenPresentationState } from '../../utils/presentationMapper';
+
+import { CyberDesk } from './env3d/CyberDesk';
+import { CyberEnvironment } from './env3d/CyberEnvironment';
+import { CyberMonitor } from './env3d/CyberMonitor';
+import { CyberLaptop } from './env3d/CyberLaptop';
+import { CyberPhone } from './env3d/CyberPhone';
+import { CyberServerRack } from './env3d/CyberServerRack';
+import { CyberFirewall } from './env3d/CyberFirewall';
+import { CyberOutcome } from './env3d/CyberOutcome';
 
 export interface CyberWorld3DProps {
   scenario?: SimulationScenario;
@@ -19,14 +28,14 @@ export interface CyberWorld3DProps {
 }
 
 const ZONES = {
-  EMAIL: { id: 'email', position: [-6, 0, 1], rotation: [0, 0.4, 0], color: '#8b5cf6' },
-  DEVICE: { id: 'device', position: [5, 0, 2], rotation: [0, -0.4, 0], color: '#3b82f6' },
-  BROWSER: { id: 'browser', position: [2.5, -0.5, 4], rotation: [0, -0.2, 0], color: '#f59e0b' },
-  IDENTITY: { id: 'identity', position: [0, 2, -3], rotation: [0, 0, 0], color: '#06b6d4' },
-  DEFENSE: { id: 'defense', position: [-5, 3.5, -5], rotation: [0.1, 0.4, 0], color: '#10b981' },
-  CLOUD: { id: 'cloud', position: [6, 3.5, -5], rotation: [0.1, -0.5, 0], color: '#6366f1' },
-  SOCIAL: { id: 'social', position: [0, 5, -8], rotation: [0.15, 0, 0], color: '#ec4899' },
-  OUTCOME: { id: 'outcome', position: [0, 1.5, 3], rotation: [0, 0, 0], color: '#ef4444' }
+  EMAIL: { id: 'email', position: [0, 0, -1.5], rotation: [0, 0, 0], color: '#8b5cf6' },
+  BROWSER: { id: 'browser', position: [0, 0, -1.5], rotation: [0, 0, 0], color: '#f59e0b' },
+  DEVICE: { id: 'device', position: [-2.5, 0, 1], rotation: [0, 0.3, 0], color: '#3b82f6' },
+  IDENTITY: { id: 'identity', position: [3, 0, 1.5], rotation: [0, -0.2, 0], color: '#06b6d4' },
+  SOCIAL: { id: 'social', position: [3, 0, 1.5], rotation: [0, -0.2, 0], color: '#ec4899' },
+  DEFENSE: { id: 'defense', position: [-3.5, 0, -1.5], rotation: [0, 0.4, 0], color: '#10b981' },
+  CLOUD: { id: 'cloud', position: [6, -4.2, -6], rotation: [0, -0.4, 0], color: '#6366f1' },
+  OUTCOME: { id: 'outcome', position: [0, 3, 0], rotation: [0, 0, 0], color: '#ef4444' }
 };
 
 function CameraDirector({ presentationState, reducedMotion, simulationState }: { presentationState: ScreenPresentationState, reducedMotion: boolean, simulationState?: SimulationState }) {
@@ -36,13 +45,12 @@ function CameraDirector({ presentationState, reducedMotion, simulationState }: {
   useFrame(() => {
     if (reducedMotion || !controls) return;
     
-    let tx = 0, ty = 2, tz = -2; // Center focus
-    let targetCameraPos = new THREE.Vector3(0, 4, 18); // Default wide view
+    let tx = 0, ty = 0, tz = 0; // Center focus on desk
+    let targetCameraPos = new THREE.Vector3(0, 5, 14); // Default wide view
     
     if (simulationState === 'idle') {
-      // Wide cinematic view
-      tx = 0; ty = 2; tz = -2;
-      targetCameraPos = new THREE.Vector3(0, 4, 18);
+      tx = 0; ty = 0; tz = 0;
+      targetCameraPos = new THREE.Vector3(0, 5, 14);
     } else if (presentationState.focusCamera && presentationState.screenId) {
       const targetZone = Object.values(ZONES).find(z => z.id === presentationState.screenId);
       if (targetZone) {
@@ -51,76 +59,28 @@ function CameraDirector({ presentationState, reducedMotion, simulationState }: {
         ty = zy;
         tz = zz;
         
-        // Calculate offset based on rotation so camera looks at it somewhat straight
+        // Closer offset for physical devices
         const [, ry] = targetZone.rotation;
-        const offsetZ = Math.cos(ry) * 7;
-        const offsetX = Math.sin(ry) * 7;
+        const offsetZ = Math.cos(ry) * 6;
+        const offsetX = Math.sin(ry) * 6;
         
-        targetCameraPos = new THREE.Vector3(zx + offsetX, zy + 0.5, zz + offsetZ);
+        if (presentationState.screenId === 'cloud') {
+           targetCameraPos = new THREE.Vector3(zx + offsetX * 1.5, zy + 6, zz + offsetZ * 1.5);
+           ty = zy + 5;
+        } else {
+           targetCameraPos = new THREE.Vector3(zx + offsetX, zy + 2, zz + offsetZ);
+        }
       }
     } else if (simulationState === 'completed') {
-       // Keep focus on outcome
        const targetZone = ZONES.OUTCOME;
        tx = targetZone.position[0]; ty = targetZone.position[1]; tz = targetZone.position[2];
-       targetCameraPos = new THREE.Vector3(tx, ty + 0.5, tz + 7);
+       targetCameraPos = new THREE.Vector3(tx, ty + 1, tz + 8);
     }
     
     controls.target.lerp(new THREE.Vector3(tx, ty, tz), 0.03);
     camera.position.lerp(targetCameraPos, 0.02);
   });
   return null;
-}
-
-function CyberScreen3D({ title, subtitle, isActive, position, rotation, children, status = 'IDLE', color }: any) {
-  return (
-    <group position={position} rotation={rotation}>
-       {/* Screen Frame */}
-       <RoundedBox args={[4.2, 2.6, 0.1]} radius={0.05} position={[0, 0, -0.05]}>
-         <meshStandardMaterial color={isActive ? '#1e293b' : '#0f172a'} roughness={0.4} metalness={0.6} />
-       </RoundedBox>
-       {/* Glass panel behind HTML */}
-       <RoundedBox args={[4.0, 2.4, 0.02]} radius={0.02} position={[0, 0, 0]}>
-         <meshStandardMaterial color="#02040a" roughness={0.1} metalness={0.9} emissive={isActive ? color : '#000000'} emissiveIntensity={isActive ? 0.2 : 0} />
-       </RoundedBox>
-       {/* Inner bezel glow when active */}
-       {isActive && (
-         <RoundedBox args={[4.05, 2.45, 0.01]} radius={0.03} position={[0, 0, -0.01]}>
-           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} wireframe opacity={0.2} transparent />
-         </RoundedBox>
-       )}
-       {/* Screen Content */}
-       <Html transform position={[0, 0, 0.02]} scale={0.005} zIndexRange={[1, 10]} occlude="blending">
-         <div style={{ width: '800px', height: '480px' }} className={`bg-[#0b1120]/95 backdrop-blur-md rounded border flex flex-col overflow-hidden transition-all duration-500 
-            ${isActive ? 'opacity-100' : 'opacity-30'} 
-            ${isActive && color === ZONES.EMAIL.color ? 'border-violet-500/50 shadow-[0_0_40px_rgba(139,92,246,0.3)]' : ''}
-            ${isActive && color === ZONES.DEVICE.color ? 'border-blue-500/50 shadow-[0_0_40px_rgba(59,130,246,0.3)]' : ''}
-            ${isActive && color === ZONES.BROWSER.color ? 'border-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.3)]' : ''}
-            ${isActive && color === ZONES.IDENTITY.color ? 'border-cyan-500/50 shadow-[0_0_40px_rgba(6,182,212,0.3)]' : ''}
-            ${isActive && color === ZONES.DEFENSE.color ? 'border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.3)]' : ''}
-            ${isActive && color === ZONES.CLOUD.color ? 'border-indigo-500/50 shadow-[0_0_40px_rgba(99,102,241,0.3)]' : ''}
-            ${isActive && color === ZONES.SOCIAL.color ? 'border-pink-500/50 shadow-[0_0_40px_rgba(236,72,153,0.3)]' : ''}
-            ${isActive && color === ZONES.OUTCOME.color ? 'border-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.3)]' : ''}
-            ${!isActive ? 'border-slate-800' : ''}
-         `}>
-            {/* Header */}
-            <div className="bg-slate-900/90 px-5 py-3 border-b border-slate-800 flex justify-between items-center">
-              <div>
-                 <div className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1">{subtitle}</div>
-                 <div className="text-base font-bold tracking-widest text-white uppercase">{title}</div>
-              </div>
-              <div className="flex gap-3 items-center bg-[#02040a] px-4 py-2 rounded-lg border border-slate-800">
-                 <div className={`text-xs font-bold tracking-widest uppercase ${isActive ? (status === 'WARNING' || status === 'BLOCKED' ? 'text-amber-500 animate-pulse' : 'text-cyan-400 animate-pulse') : 'text-slate-600'}`}>{status}</div>
-                 <div className={`w-2.5 h-2.5 rounded-full ${isActive ? (status === 'WARNING' || status === 'BLOCKED' ? 'bg-amber-500' : 'bg-cyan-500') : 'bg-slate-700'}`} />
-              </div>
-            </div>
-            {/* Content Body */}
-            <div className="flex-1 relative p-6 flex flex-col">
-               {children}
-            </div>
-         </div>
-       </Html>
-    </group>
-  );
 }
 
 function EmailScreenContent({ isActive }: { isActive: boolean }) {
@@ -285,63 +245,6 @@ function OutcomeScreenContent({ state }: { isActive: boolean, state: string }) {
   );
 }
 
-function ZonePlatform({ zone, presentationState }: { zone: any, presentationState: ScreenPresentationState }) {
-  const isActive = presentationState.screenId === zone.id;
-  const status = isActive ? presentationState.state : 'IDLE';
-
-  const renderContent = () => {
-    switch (zone.id) {
-      case 'email': return <EmailScreenContent isActive={isActive} />;
-      case 'device': return <DeviceScreenContent isActive={isActive} />;
-      case 'browser': return <BrowserScreenContent isActive={isActive} />;
-      case 'identity': return <IdentityScreenContent isActive={isActive} />;
-      case 'defense': return <DefenseScreenContent isActive={isActive} />;
-      case 'cloud': return <CloudScreenContent isActive={isActive} />;
-      case 'social': return <SocialScreenContent isActive={isActive} />;
-      case 'outcome': return <OutcomeScreenContent isActive={isActive} state={status} />;
-      default: return null;
-    }
-  };
-
-  return (
-    <CyberScreen3D 
-      title={zone.title} 
-      subtitle={zone.subtitle} 
-      isActive={isActive} 
-      position={zone.position} 
-      rotation={zone.rotation}
-      status={status}
-      color={zone.color}
-    >
-      {renderContent()}
-    </CyberScreen3D>
-  );
-}
-
-function Particles({ reducedMotion }: { reducedMotion: boolean }) {
-  const count = 150;
-  const [positions] = useState(() => {
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 30; // wider spread
-      pos[i * 3 + 1] = Math.random() * 10;     // above ground
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 30;
-    }
-    return pos;
-  });
-
-  if (reducedMotion) return null;
-
-  return (
-    <points>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial size={0.06} color="#06b6d4" transparent opacity={0.3} sizeAttenuation />
-    </points>
-  );
-}
-
 export function CyberWorld3D({ 
   scenario,
   simulationState = 'idle', 
@@ -384,6 +287,15 @@ export function CyberWorld3D({
       </div>
     );
   }
+  
+  // Determine active states for components based on presentationState
+  const isEmail = presentationState.screenId === 'email';
+  const isBrowser = presentationState.screenId === 'browser';
+  const isDevice = presentationState.screenId === 'device';
+  const isIdentity = presentationState.screenId === 'identity';
+  const isSocial = presentationState.screenId === 'social';
+  const isCloud = presentationState.screenId === 'cloud';
+  const isDefense = presentationState.screenId === 'defense';
 
   return (
     <div className="relative w-full h-[500px] lg:h-[700px] rounded-xl overflow-hidden border border-slate-800/80 bg-gradient-to-b from-[#02040a] to-[#060a14]">
@@ -397,45 +309,80 @@ export function CyberWorld3D({
         </div>
       </div>
 
-      <Canvas camera={{ position: [0, 10, 20], fov: 45 }} frameloop={reducedMotion ? "demand" : "always"} gl={{ antialias: true, powerPreference: "high-performance" }}>
-        <color attach="background" args={['#02040a']} />
-        <fog attach="fog" args={['#02040a', 10, 40]} />
-        <ambientLight intensity={0.4} />
-        <pointLight position={[10, 15, 10]} intensity={1} color="#06b6d4" />
-        <pointLight position={[-10, -5, -10]} intensity={0.5} color="#8b5cf6" />
-        <pointLight position={[0, 10, -10]} intensity={0.8} color="#10b981" />
+      <Canvas shadows camera={{ position: [0, 4, 12], fov: 45 }} frameloop={reducedMotion ? "demand" : "always"} gl={{ antialias: true, powerPreference: "high-performance" }}>
+        
+        <CyberEnvironment />
         
         <OrbitControls 
           makeDefault
           enableZoom={true} 
           enablePan={true} 
           maxPolarAngle={Math.PI / 2 - 0.05}
-          minDistance={5}
-          maxDistance={35}
+          minDistance={3}
+          maxDistance={30}
           autoRotate={!reducedMotion && simulationState === 'idle'}
-          autoRotateSpeed={0.3}
+          autoRotateSpeed={0.2}
+          target={[0, 0, 0]}
         />
         
         <CameraDirector presentationState={presentationState} reducedMotion={reducedMotion} simulationState={simulationState} />
-        <Particles reducedMotion={reducedMotion} />
         
-        {Object.values(ZONES).map(zone => {
-          // Only render OUTCOME if we are completed
-          if (zone.id === 'outcome' && simulationState !== 'completed') return null;
-          // Hide other screens when completed (optional, but requested specifically to make outcome distinct)
-          // If we want to keep them frozen in the background, we can leave them. Let's keep them.
+        {/* Physical 3D Devices */}
+        <CyberDesk position={[0, 0, 0]} />
+        
+        <CyberMonitor 
+          position={ZONES.EMAIL.position as any} 
+          rotation={ZONES.EMAIL.rotation as any}
+          isActive={isEmail || isBrowser}
+          status={isEmail ? presentationState.state : (isBrowser ? presentationState.state : 'IDLE')}
+          color={isEmail ? ZONES.EMAIL.color : (isBrowser ? ZONES.BROWSER.color : '#334155')}
+          title={isEmail ? ZONES.EMAIL.id.toUpperCase() : (isBrowser ? ZONES.BROWSER.id.toUpperCase() : 'MONITOR')}
+          subtitle={isEmail ? 'COMMUNICATION' : (isBrowser ? 'WEB BROWSER' : 'SYSTEM IDLE')}
+          renderContent={() => isEmail ? <EmailScreenContent isActive={isEmail} /> : (isBrowser ? <BrowserScreenContent isActive={isBrowser} /> : <div className="h-full flex items-center justify-center text-slate-700 tracking-widest">SYSTEM STANDBY</div>)}
+        />
+        
+        <CyberLaptop 
+          position={ZONES.DEVICE.position as any} 
+          rotation={ZONES.DEVICE.rotation as any}
+          isActive={isDevice}
+          renderContent={() => <DeviceScreenContent isActive={isDevice} />}
+        />
+        
+        <CyberPhone 
+          position={ZONES.IDENTITY.position as any} 
+          rotation={ZONES.IDENTITY.rotation as any}
+          isActive={isIdentity || isSocial}
+          status={isIdentity ? presentationState.state : (isSocial ? presentationState.state : 'IDLE')}
+          color={isIdentity ? ZONES.IDENTITY.color : (isSocial ? ZONES.SOCIAL.color : '#334155')}
+          title={isIdentity ? ZONES.IDENTITY.id.toUpperCase() : (isSocial ? ZONES.SOCIAL.id.toUpperCase() : 'MOBILE')}
+          subtitle={isIdentity ? 'AUTHENTICATION' : (isSocial ? 'SOCIAL NETWORK' : 'LOCKED')}
+          renderContent={() => isIdentity ? <IdentityScreenContent isActive={isIdentity} /> : (isSocial ? <SocialScreenContent isActive={isSocial} /> : <div className="h-full flex items-center justify-center text-slate-700 tracking-widest">LOCKED</div>)}
+        />
 
-          return (
-            <ZonePlatform 
-              key={zone.id} 
-              zone={zone} 
-              presentationState={presentationState}
-            />
-          );
-        })}
+        <CyberFirewall 
+          position={ZONES.DEFENSE.position as any} 
+          rotation={ZONES.DEFENSE.rotation as any}
+          isActive={isDefense}
+          status={isDefense ? presentationState.state : 'IDLE'}
+          renderContent={() => <DefenseScreenContent isActive={isDefense} />}
+        />
 
-        {/* Global Floor Grid */}
-        <gridHelper args={[60, 60, '#06b6d4', '#06b6d4']} position={[0, -0.5, 0]} material-opacity={0.05} material-transparent />
+        <CyberServerRack 
+          position={ZONES.CLOUD.position as any} 
+          rotation={ZONES.CLOUD.rotation as any}
+          isActive={isCloud}
+          renderContent={() => <CloudScreenContent isActive={isCloud} />}
+        />
+
+        {simulationState === 'completed' && (
+          <CyberOutcome 
+            position={ZONES.OUTCOME.position as any} 
+            rotation={ZONES.OUTCOME.rotation as any}
+            isActive={true}
+            status={presentationState.state}
+            renderContent={() => <OutcomeScreenContent isActive={true} state={presentationState.state} />}
+          />
+        )}
       </Canvas>
 
       {/* SCENARIO BRIEFING (IDLE) */}
