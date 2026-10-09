@@ -7,7 +7,7 @@ export function SecurityReport({ result }: { result: ComprehensiveSimulationResu
   if (!result) return null;
 
   const { record, analysis, learningImpact, remediationEffectiveness, aiExplanation } = result;
-  
+
   const isBlocked = record.result === 'ATTACK BLOCKED' || record.result === 'DATA RECOVERED';
   const reportDate = new Date(record.date).toLocaleString();
 
@@ -20,12 +20,36 @@ export function SecurityReport({ result }: { result: ComprehensiveSimulationResu
       {/* Hide the rest of the app during print, only show this report */}
       <style>{`
         @media print {
+          /* Reset viewport and layout restrictions to allow pagination */
+          html, body, #root {
+            height: auto !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Override application layout constraints */
+          .h-screen, .h-full, .overflow-hidden, .overflow-y-auto, main {
+            height: auto !important;
+            overflow: visible !important;
+          }
+
+          /* Force relative containers to static so absolute positioning attaches to body */
+          .relative {
+            position: static !important;
+          }
+
+          /* Hide all elements by default */
           body * {
             visibility: hidden;
           }
+
+          /* Make only the report visible */
           .security-report-printable, .security-report-printable * {
             visibility: visible;
           }
+
+          /* Position the report at the very top of the document */
           .security-report-printable {
             position: absolute;
             left: 0;
@@ -33,13 +57,17 @@ export function SecurityReport({ result }: { result: ComprehensiveSimulationResu
             width: 100%;
             background-color: white !important;
             color: black !important;
+            padding: 0 !important; /* Let browser margins handle the edge */
           }
+
           .print-hide {
             display: none !important;
           }
+
           .print-break-inside-avoid {
             break-inside: avoid;
           }
+
           .print-page-break {
             page-break-before: always;
           }
@@ -47,7 +75,7 @@ export function SecurityReport({ result }: { result: ComprehensiveSimulationResu
       `}</style>
 
       <div className="security-report-printable p-8">
-        
+
         {/* HEADER & CONTROLS */}
         <div className="flex justify-between items-start mb-8 pb-6 border-b border-slate-800 print:border-gray-300">
           <div>
@@ -63,7 +91,7 @@ export function SecurityReport({ result }: { result: ComprehensiveSimulationResu
               SIMULATION ONLY • NO REAL SYSTEM ACCESS
             </div>
           </div>
-          
+
           <div className="text-right flex flex-col items-end">
             <Button variant="secondary" size="sm" onClick={handlePrint} className="print-hide mb-4 border-slate-600">
               <Printer size={16} className="mr-2" />
@@ -123,8 +151,8 @@ export function SecurityReport({ result }: { result: ComprehensiveSimulationResu
                 <tr>
                   <td className="py-2 text-slate-500 print:text-gray-500 font-medium">Attack Path</td>
                   <td className="py-2 text-slate-300 print:text-black font-mono text-xs">
-                    {record.attackPath && record.attackPath.length > 0 
-                      ? record.attackPath.join(' → ') 
+                    {record.attackPath && record.attackPath.length > 0
+                      ? record.attackPath.join(' → ')
                       : 'N/A'}
                   </td>
                 </tr>
@@ -267,7 +295,7 @@ export function SecurityReport({ result }: { result: ComprehensiveSimulationResu
             </div>
           </div>
         )}
-        
+
         {/* FOOTER */}
         <div className="mt-12 pt-6 border-t border-slate-800 print:border-gray-300 text-center text-xs text-slate-500 print:text-gray-400 pb-4">
           <p className="mb-1 font-bold">CyberShadow • AI-powered Digital Attack Simulation Twin</p>

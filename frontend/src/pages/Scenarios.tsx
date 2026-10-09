@@ -92,7 +92,7 @@ export function Scenarios() {
       ) : (
         <div className="animate-in fade-in duration-500">
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 mb-4">
-            <div className="flex gap-4 text-[10px] font-mono text-slate-500 tracking-widest uppercase">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 text-[10px] font-mono text-slate-500 tracking-widest uppercase">
               <span className="text-white font-bold">{scenarios.length} FICTIONAL SCENARIOS</span>
               <span>•</span>
               <span>5 CATEGORIES</span>

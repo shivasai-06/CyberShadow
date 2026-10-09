@@ -24,7 +24,7 @@ export interface TwinConnection {
 export interface TwinSecurityControl {
   id: string;
   name: string;
-  state: 'ON' | 'OFF' | 'LOW' | 'MEDIUM' | 'HIGH';
+  state: 'ON' | 'OFF';
   description: string;
-  type: 'toggle' | 'level';
+  type: 'toggle';
 }

@@ -358,12 +358,12 @@ export function SimulationLab() {
         // --- SIMULATION PHASE ---
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Controls Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#060a14] border border-slate-800/80 rounded-lg">
-            <div className="flex items-center gap-4">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-[#060a14] border border-slate-800/80 rounded-lg">
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">
                 PROGRESS: STEP {Math.min(currentStepIndex + 1, simulationPlan?.stepsToRun.length || 0)} / {simulationPlan?.stepsToRun.length || 0}
               </span>
-              <div className="w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div className="w-full sm:w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                 <div 
                   className={`h-full transition-all duration-1000 ease-linear ${simulationState === 'completed' ? (simulationPlan?.isBlocked ? 'bg-green-500' : 'bg-red-500') : 'bg-cyan-500'}`}
                   style={{ width: `${((currentStepIndex + (simulationState === 'completed' ? 1 : 0)) / (simulationPlan?.stepsToRun.length || 1)) * 100}%` }}
@@ -371,7 +371,7 @@ export function SimulationLab() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
               {simulationState === 'running' && (
                 <Button variant="secondary" size="sm" onClick={handlePause} className="gap-2 text-[10px] uppercase tracking-widest">
                   <Pause size={14} fill="currentColor" /> PAUSE

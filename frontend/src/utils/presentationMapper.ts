@@ -25,9 +25,13 @@ export function mapSimulationStepToScreen(
 ): ScreenPresentationState {
   
   if (simulationState === 'completed') {
+    const isBlocked = simulationPlan?.outcome === 'ATTACK BLOCKED';
+    const isSuccess = simulationPlan?.outcome === 'DATA RECOVERED';
+    const stateVal = isBlocked ? 'BLOCKED' : isSuccess ? 'SUCCESS' : 'COMPROMISED';
+
     return {
       screenId: 'outcome',
-      state: simulationPlan?.outcome === 'ATTACK BLOCKED' ? 'BLOCKED' : 'COMPROMISED',
+      state: stateVal,
       title: 'SIMULATION COMPLETE',
       primaryMessage: simulationPlan?.outcome || 'SIMULATED COMPROMISE',
       secondaryMessage: simulationPlan?.finalExplanation || 'Simulation finished.',

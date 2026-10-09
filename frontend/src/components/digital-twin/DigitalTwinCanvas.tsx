@@ -18,7 +18,8 @@ export function DigitalTwinCanvas({ assets, selectedId, onSelectAsset }: Digital
   const social = getAsset('SOCIAL ACCOUNT');
 
   return (
-    <div className="relative w-full h-[500px] bg-[#030712] rounded-lg border border-slate-800/80 overflow-hidden flex items-center justify-center">
+    <div className="relative w-full h-[500px] md:h-[600px] bg-[#030712] rounded-lg border border-slate-800/80 overflow-x-auto overflow-y-hidden flex items-center justify-center custom-scrollbar">
+      <div className="min-w-[700px] w-full h-full relative">
       {/* Background Grid */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDM5LjVMMDAgMzkuNXoiIHN0cm9rZT0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PHBhdGggZD0iTTM5LjUgMEwzOS41IDQweiIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDMpIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=')] opacity-30" />
       
@@ -80,6 +81,7 @@ export function DigitalTwinCanvas({ assets, selectedId, onSelectAsset }: Digital
         <div className="px-2 py-1 bg-[#060a14] border border-slate-800 rounded text-[9px] font-mono text-slate-500 uppercase tracking-widest">
           TOPOLOGY VIEW / 2D
         </div>
+      </div>
       </div>
     </div>
   );

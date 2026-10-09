@@ -18,7 +18,8 @@ import {
   Brain,
   LogIn,
   LogOut,
-  User
+  User,
+  GitCompareArrows
 } from 'lucide-react';
 
 const navItems = [
@@ -27,6 +28,7 @@ const navItems = [
   { name: 'Scenarios', path: '/scenarios', icon: ShieldAlert },
   { name: 'Learning Path', path: '/learning-path', icon: GraduationCap },
   { name: 'Simulation Lab', path: '/simulation', icon: TestTube2 },
+  { name: 'What-If Lab', path: '/what-if', icon: GitCompareArrows },
   { name: 'History', path: '/history', icon: History },
   { name: 'Reports', path: '/reports', icon: FileText },
   { name: 'AI Assistant', path: '/ai-assistant', icon: Brain },
@@ -37,7 +39,7 @@ const secondaryNavItems = [
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isDesktopOpen = true }: { isDesktopOpen?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
 
@@ -67,8 +69,9 @@ export function Sidebar() {
       )}
 
       <div className={`
-        fixed md:static inset-y-0 left-0 z-40 w-[260px] flex-shrink-0 bg-[#060a14] border-r border-gray-800/80 flex flex-col transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        fixed md:static inset-y-0 left-0 z-40 flex-shrink-0 bg-[#060a14] flex flex-col transition-all duration-300 ease-in-out overflow-hidden
+        ${isOpen ? 'translate-x-0 w-[260px] border-r border-gray-800/80' : '-translate-x-full w-[260px] border-r border-gray-800/80'}
+        ${isDesktopOpen ? 'md:translate-x-0 md:w-[260px] md:border-r md:border-gray-800/80' : 'md:-translate-x-full md:w-0 md:border-r-0'}
       `}>
         {/* Logo Area */}
         <div className="p-6 pb-4 border-b border-gray-800/50">

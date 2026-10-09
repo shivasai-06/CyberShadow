@@ -145,7 +145,7 @@ export function RemediationCenter() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-cyan-950/20 border border-cyan-900/30 p-4 rounded">
                       <h3 className="text-[11px] font-bold text-cyan-500 uppercase tracking-[0.15em] mb-2">SIMULATED DEFENSE</h3>
                       <div className="text-slate-200 text-sm font-semibold">{selectedRemediation.relatedControl}</div>

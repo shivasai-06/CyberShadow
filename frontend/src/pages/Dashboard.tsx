@@ -40,7 +40,7 @@ export function Dashboard() {
             <p className="text-slate-400 max-w-2xl text-sm leading-relaxed mb-8">
               CyberShadow creates a safe digital twin and simulates fictional cyberattack scenarios so you can understand weaknesses, test defenses, and compare security outcomes.
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <Button variant="primary" className="gap-2 px-6" onClick={() => navigate('/simulation')}>
                 <Play size={16} fill="currentColor" /> RUN SIMULATION
               </Button>
@@ -523,8 +523,8 @@ export function Dashboard() {
               </div>
 
               {/* Visual Topology Network */}
-              <div className="flex-1 bg-[#060a14] rounded-md border border-slate-800/50 p-6 flex items-center justify-center min-h-[200px]">
-                <div className="flex flex-col items-center">
+              <div className="flex-1 bg-[#060a14] rounded-md border border-slate-800/50 p-6 flex items-center justify-center min-h-[200px] overflow-x-auto overflow-y-hidden custom-scrollbar">
+                <div className="flex flex-col items-center min-w-max">
                   <div className="flex items-center gap-2 text-cyan-400 bg-cyan-950/30 px-3 py-1.5 rounded border border-cyan-900/50">
                     <Cloud size={14} /> <span className="text-[10px] font-bold tracking-widest uppercase">CLOUD STORAGE</span>
                   </div>
