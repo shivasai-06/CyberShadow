@@ -1,4 +1,4 @@
-import { ShieldCheck, Server, AlertCircle, Menu, X } from 'lucide-react';
+import { ShieldCheck, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { healthApi } from '../../services/healthApi';
 
@@ -52,20 +52,17 @@ export function TopBar({ toggleSidebar, isSidebarOpen }: { toggleSidebar?: () =>
           <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">SIMULATION ONLY</span>
         </div>
 
-        {isBackendOnline ? (
-          <div className="flex items-center gap-2 bg-green-950/20 px-2 py-1 rounded border border-green-900/30">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-            <span className="hidden sm:inline text-[10px] font-bold text-green-400 tracking-widest uppercase">BACKEND ONLINE</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 bg-slate-900/50 px-2 py-1 rounded border border-slate-800">
-            <Server size={12} className="text-slate-500" />
-            <span className="hidden sm:inline text-[10px] font-bold text-slate-400 tracking-widest uppercase">LOCAL SIMULATION</span>
-            <div className="hidden sm:block h-3 border-l border-slate-700 mx-1" />
-            <AlertCircle size={12} className="text-red-500" />
-            <span className="hidden sm:inline text-[10px] font-bold text-red-400 tracking-widest uppercase">BACKEND OFFLINE</span>
-          </div>
-        )}
+        <div
+          className="flex items-center justify-center px-2 py-1 cursor-default"
+          title={isBackendOnline ? "Backend Online" : "Backend Offline"}
+          aria-label={isBackendOnline ? "Backend Online" : "Backend Offline"}
+        >
+          {isBackendOnline ? (
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+          ) : (
+            <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+          )}
+        </div>
       </div>
     </div>
   );
