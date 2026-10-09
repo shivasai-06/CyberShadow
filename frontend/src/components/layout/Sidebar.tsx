@@ -39,12 +39,15 @@ const secondaryNavItems = [
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
-export function Sidebar({ isDesktopOpen = true }: { isDesktopOpen?: boolean }) {
+export function Sidebar({ isDesktopOpen = true, closeDesktopSidebar }: { isDesktopOpen?: boolean, closeDesktopSidebar?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
-  const closeSidebar = () => setIsOpen(false);
+  const closeSidebar = () => {
+    setIsOpen(false);
+    if (closeDesktopSidebar) closeDesktopSidebar();
+  };
 
   const handleSignOut = async () => {
     if (supabase) {
