@@ -200,7 +200,7 @@ export function AIAssistant() {
             <Brain className="text-purple-400" />
             AI SECURITY ASSISTANT
           </h1>
-          <p className="text-slate-400 text-sm">Understand your CyberShadow simulations</p>
+          <p className="text-slate-400 text-sm">Ask about your simulations or explore general topics.</p>
         </div>
         
         {/* Context Indicator */}
@@ -294,7 +294,7 @@ export function AIAssistant() {
                 <Cpu size={48} className="text-purple-500/50 mb-6" />
                 <h2 className="text-lg font-bold text-slate-300 uppercase tracking-widest mb-4">AI SECURITY ASSISTANT</h2>
                 <p className="text-sm mb-2 leading-relaxed">
-                  Ask about your simulated attacks, security findings, defenses, or remediation results.
+                  Ask about your simulated attacks, security findings, or any general topics.
                 </p>
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mb-8">
                   <Zap size={10} className="text-purple-400" />
@@ -388,7 +388,7 @@ export function AIAssistant() {
             <div className="flex gap-4">
               <textarea
                 className="flex-1 bg-[#060a14] border border-slate-800 rounded p-3 text-sm text-slate-200 focus:outline-none focus:border-purple-500/50 resize-none min-h-[50px] max-h-[150px]"
-                placeholder="Ask CyberShadow about your simulation..."
+                placeholder="Ask about anything, or explore your CyberShadow simulation..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -406,7 +406,7 @@ export function AIAssistant() {
             </div>
             <div className="mt-2 text-[10px] flex items-center justify-center gap-2 text-slate-500">
               <ShieldAlert size={10} />
-              Simulation defense analysis only.
+              Simulation and general analysis.
               <span className="text-slate-600">·</span>
               <Zap size={9} className="text-purple-400/60" />
               <span className="text-slate-500/80">Gemini Flash</span>
