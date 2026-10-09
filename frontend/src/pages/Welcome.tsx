@@ -11,7 +11,7 @@ export function Welcome() {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/dashboard', { replace: true });
+      navigate('/welcome', { replace: true });
     }
   }, [user, loading, navigate]);
 

@@ -10,7 +10,7 @@ export function Auth() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || '/welcome';
 
   useEffect(() => {
     if (user && !authLoading) {

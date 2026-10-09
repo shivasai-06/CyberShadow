@@ -18,6 +18,7 @@ import { Settings } from './pages/Settings';
 import { AIAssistant } from './pages/AIAssistant';
 import { Auth } from './pages/Auth';
 import { Welcome } from './pages/Welcome';
+import { WelcomeGuide } from './pages/WelcomeGuide';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             {/* Protected Application Routes */}
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
+                <Route path="welcome" element={<WelcomeGuide />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="digital-twin" element={<DigitalTwin />} />
                 <Route path="scenarios" element={<Scenarios />} />
