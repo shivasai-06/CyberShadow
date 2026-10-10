@@ -196,9 +196,8 @@ export function Sidebar({ isDesktopOpen = true, closeDesktopSidebar }: { isDeskt
             <div className="h-px w-full bg-gray-800/50 my-1" />
 
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
-                <div className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">SANDBOX ONLINE</div>
+              <div className="flex items-center gap-3" title="Sandbox online">
+                <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse" />
               </div>
 
               <div className="flex items-center gap-2 text-gray-500">
