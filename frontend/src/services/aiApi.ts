@@ -6,6 +6,7 @@ export interface AIResponse {
   success: boolean;
   response: string;
   error?: string;
+  error_code?: string;
 }
 
 export interface AgentRequest {
@@ -21,8 +22,10 @@ export interface AgentResponse {
   next_action: string;
   reasoning?: AIReasoning;
   error?: string;
+  error_code?: string;
   source?: string;
 }
+
 
 export const aiApi = {
   /**

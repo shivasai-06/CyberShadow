@@ -1,6 +1,10 @@
 import logging
 from app.schemas.ai import AssistantRequest, AssistantResponse, AssistantMessage
-from app.services.gemini_service import generate_assistant_response
+from app.services.gemini_service import (
+    generate_assistant_response,
+    GeminiServiceError,
+    GeminiConfigError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -71,15 +75,16 @@ def _build_conversation_history(messages: list[AssistantMessage]) -> list[dict]:
 
 def run_assistant(request: AssistantRequest) -> AssistantResponse:
     if not request.messages:
-        return AssistantResponse(success=False, error="No messages provided.")
+        return AssistantResponse(success=False, error="No messages provided.", error_code="INVALID_REQUEST")
 
     current_message = request.messages[-1].content
 
-    # Safety guardrail (purpose-appropriate)
+    # Safety guardrail (purpose-appropriate simulation boundary)
     if not is_safe_assistant_request(current_message):
         return AssistantResponse(
             success=False,
-            error="I cannot fulfill this request. Please avoid requests for actionable real-world exploitation."
+            error="I cannot fulfill this request. CyberShadow is a simulation-only platform for defensive education; requests for actionable real-world exploitation are prohibited.",
+            error_code="SAFETY_BLOCKED"
         )
 
     # Build system instruction with current CyberShadow context appended
@@ -100,19 +105,34 @@ def run_assistant(request: AssistantRequest) -> AssistantResponse:
             success=True,
             message=AssistantMessage(role="assistant", content=clean_response),
         )
-    except ValueError:
+    except GeminiConfigError as ce:
         return AssistantResponse(
             success=False,
-            error="AI Assistant is not configured. Please set the GEMINI_API_KEY in the backend environment."
+            error=ce.message,
+            error_code=ce.code
         )
-    except RuntimeError:
+    except ValueError as ve:
         return AssistantResponse(
             success=False,
-            error="AI Assistant is temporarily unavailable. Your CyberShadow simulation data remains available."
+            error="AI Assistant is not configured. Please set the GEMINI_API_KEY in the backend environment.",
+            error_code="CONFIG_ERROR"
+        )
+    except GeminiServiceError as ge:
+        return AssistantResponse(
+            success=False,
+            error=ge.message,
+            error_code=ge.code
+        )
+    except RuntimeError as re:
+        return AssistantResponse(
+            success=False,
+            error="AI Assistant is temporarily unavailable. Your CyberShadow simulation data remains available.",
+            error_code="RUNTIME_ERROR"
         )
     except Exception as e:
-        logger.error(f"Assistant error: {str(e)}")
+        logger.error("Assistant unhandled exception: type=%s", type(e).__name__)
         return AssistantResponse(
             success=False,
-            error="AI Assistant is temporarily unavailable. Your CyberShadow simulation data remains available."
+            error="AI Assistant is temporarily unavailable. Your CyberShadow simulation data remains available.",
+            error_code="INTERNAL_ERROR"
         )

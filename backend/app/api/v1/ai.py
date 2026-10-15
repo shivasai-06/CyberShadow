@@ -1,6 +1,19 @@
 from fastapi import APIRouter
-from app.schemas.ai import AIRequest, AIResponse, AgentRequest, AgentResponse, DashboardAIRequest, DashboardAIResponse, AssistantRequest, AssistantResponse
-from app.services.gemini_service import generate_response
+from app.schemas.ai import (
+    AIRequest,
+    AIResponse,
+    AgentRequest,
+    AgentResponse,
+    DashboardAIRequest,
+    DashboardAIResponse,
+    AssistantRequest,
+    AssistantResponse,
+)
+from app.services.gemini_service import (
+    generate_response,
+    GeminiServiceError,
+    GeminiConfigError,
+)
 from app.services.ai_agent import run_agent
 from app.services.dashboard_ai import analyze_dashboard
 from app.services.assistant_ai import run_assistant
@@ -12,14 +25,16 @@ def test_ai(request: AIRequest):
     try:
         response_text = generate_response(request.message)
         return AIResponse(success=True, response=response_text)
-    except ValueError as ve:
-        # Configuration error
-        return AIResponse(success=False, response="", error="AI service is not configured properly on the backend.")
+    except GeminiConfigError as ce:
+        return AIResponse(success=False, response="", error=ce.message, error_code=ce.code)
+    except ValueError:
+        return AIResponse(success=False, response="", error="AI service is not configured properly on the backend.", error_code="CONFIG_ERROR")
+    except GeminiServiceError as ge:
+        return AIResponse(success=False, response="", error=ge.message, error_code=ge.code)
     except RuntimeError as re:
-        # Service error safe string
-        return AIResponse(success=False, response="", error=str(re))
-    except Exception as e:
-        return AIResponse(success=False, response="", error="An unexpected error occurred in the AI service.")
+        return AIResponse(success=False, response="", error=str(re), error_code="RUNTIME_ERROR")
+    except Exception:
+        return AIResponse(success=False, response="", error="An unexpected error occurred in the AI service.", error_code="INTERNAL_ERROR")
 
 @router.post("/agent", response_model=AgentResponse)
 def run_ai_agent(request: AgentRequest):

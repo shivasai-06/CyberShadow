@@ -11,17 +11,17 @@ import { aiConversationsApi, type AIConversation } from '../services/aiConversat
 
 export function AIAssistant() {
   const { user } = useAuth();
-  const { 
-    history, 
-    securityControls, 
-    settings, 
-    learningProfile, 
+  const {
+    history,
+    securityControls,
+    settings,
+    learningProfile,
     securityLearningImpacts,
     remediations,
-    effectivenessComparisons 
+    effectivenessComparisons
   } = useCyberShadow();
   const dashboardData = useDashboardData();
-  
+
   const [conversations, setConversations] = useState<AIConversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
@@ -60,12 +60,12 @@ export function AIAssistant() {
         setCurrentConversationId(null);
       }, 0);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleSelectConversation = async (id: string) => {
     if (id === currentConversationId) return;
-    
+
     setLoading(true);
     try {
       const conv = await aiConversationsApi.getConversation(id);
@@ -133,21 +133,21 @@ export function AIAssistant() {
 
   const handleSend = async () => {
     if (!inputValue.trim() || loading) return;
-    
+
     const userMsgContent = inputValue.trim();
     const userMessage: AssistantMessage = {
       role: 'user',
       content: userMsgContent,
     };
-    
+
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInputValue('');
     setLoading(true);
     setError(null);
-    
+
     let activeConvId = currentConversationId;
-    
+
     try {
       if (user && !activeConvId) {
         // Create conversation first if authenticated
@@ -159,16 +159,16 @@ export function AIAssistant() {
           setConversations([newConv, ...conversations]);
         }
       }
-      
+
       if (user && activeConvId) {
         await aiConversationsApi.addMessage(activeConvId, userMessage);
       }
-      
+
       const response = await aiApi.sendMessage({
         messages: newMessages.slice(-20), // Send last 20 messages to keep context bounded
         context: getAssistantContext(),
       });
-      
+
       if (response.success && response.message) {
         setMessages(prev => [...prev, response.message!]);
         if (user && activeConvId) {
@@ -177,11 +177,19 @@ export function AIAssistant() {
       } else {
         setError(response.error || 'AI Assistant is temporarily unavailable. Your CyberShadow simulation data remains available.');
       }
-    } catch {
-      setError('AI Assistant is temporarily unavailable. Your CyberShadow simulation data remains available.');
+
+    } catch (err: unknown) {
+      const fallback = 'AI Assistant is temporarily unavailable. Your CyberShadow simulation data remains available.';
+      if (err instanceof Error && err.message && err.message !== 'Network failure') {
+        setError(`${fallback} (${err.message})`);
+      } else {
+        setError(fallback);
+      }
     } finally {
       setLoading(false);
     }
+
+
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -202,7 +210,7 @@ export function AIAssistant() {
           </h1>
           <p className="text-slate-400 text-sm">Ask about your simulations or explore general topics.</p>
         </div>
-        
+
         {/* Context Indicator */}
         <div className="bg-[#0b1120] border border-slate-800/80 rounded-lg p-3 hidden md:block text-xs">
           <div className="font-bold text-slate-400 uppercase tracking-widest mb-2 text-[10px]">Security Context</div>
@@ -227,14 +235,14 @@ export function AIAssistant() {
         {/* Sidebar */}
         <div className="w-64 flex-shrink-0 flex flex-col bg-[#0b1120] border border-slate-800/80 rounded-lg overflow-hidden hidden md:flex">
           <div className="p-4 border-b border-slate-800/80">
-            <Button 
+            <Button
               onClick={handleNewConversation}
               className="w-full bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border-purple-500/30"
             >
               <Plus size={16} className="mr-2" /> NEW CHAT
             </Button>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-2">
             {!user ? (
               <div className="p-4 text-center">
@@ -255,14 +263,13 @@ export function AIAssistant() {
             ) : (
               <div className="space-y-1">
                 {conversations.map(conv => (
-                  <div 
+                  <div
                     key={conv.id}
                     onClick={() => handleSelectConversation(conv.id)}
-                    className={`group cursor-pointer rounded p-3 text-sm flex items-start justify-between gap-2 transition-colors ${
-                      currentConversationId === conv.id 
-                        ? 'bg-purple-500/20 border border-purple-500/30 text-purple-200' 
+                    className={`group cursor-pointer rounded p-3 text-sm flex items-start justify-between gap-2 transition-colors ${currentConversationId === conv.id
+                        ? 'bg-purple-500/20 border border-purple-500/30 text-purple-200'
                         : 'hover:bg-slate-800/50 text-slate-400 border border-transparent'
-                    }`}
+                      }`}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="truncate mb-1">{conv.title}</div>
@@ -271,7 +278,7 @@ export function AIAssistant() {
                         {new Date(conv.updated_at).toLocaleDateString()}
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={(e) => handleDeleteConversation(conv.id, e)}
                       className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-colors"
                       title="Delete conversation"
@@ -300,7 +307,7 @@ export function AIAssistant() {
                   <Zap size={10} className="text-purple-400" />
                   <span>Powered by Gemini Flash</span>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full text-left">
                   {hasSimulations ? [
                     "Explain my latest simulation.",
@@ -309,7 +316,7 @@ export function AIAssistant() {
                     "What defense would have helped?",
                     "What should I practice next?"
                   ].map((suggestion, i) => (
-                    <button 
+                    <button
                       key={i}
                       className="p-4 bg-slate-900/50 border border-slate-800 rounded-lg hover:border-purple-500/50 hover:bg-slate-800 transition-colors text-xs text-slate-300"
                       onClick={() => setInputValue(suggestion)}
@@ -322,7 +329,7 @@ export function AIAssistant() {
                     "What security controls can I test?",
                     "How do I start a simulation?"
                   ].map((suggestion, i) => (
-                    <button 
+                    <button
                       key={i}
                       className="p-4 bg-slate-900/50 border border-slate-800 rounded-lg hover:border-purple-500/50 hover:bg-slate-800 transition-colors text-xs text-slate-300"
                       onClick={() => setInputValue(suggestion)}
@@ -336,11 +343,10 @@ export function AIAssistant() {
               <>
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] rounded-lg p-4 ${
-                      msg.role === 'user' 
-                        ? 'bg-purple-600/20 border border-purple-500/30 text-purple-100' 
+                    <div className={`max-w-[85%] rounded-lg p-4 ${msg.role === 'user'
+                        ? 'bg-purple-600/20 border border-purple-500/30 text-purple-100'
                         : 'bg-slate-900/80 border border-slate-800 text-slate-300'
-                    }`}>
+                      }`}>
                       <div className="flex items-center gap-2 mb-2">
                         {msg.role === 'assistant' && <Brain size={14} className="text-purple-400" />}
                         <span className="text-[10px] uppercase font-bold tracking-widest opacity-70">
@@ -353,7 +359,7 @@ export function AIAssistant() {
                     </div>
                   </div>
                 ))}
-                
+
                 {loading && (
                   <div className="flex justify-start">
                     <div className="max-w-[85%] rounded-lg p-4 bg-slate-900/80 border border-slate-800">
@@ -366,7 +372,7 @@ export function AIAssistant() {
                     </div>
                   </div>
                 )}
-                
+
                 {error && (
                   <div className="flex justify-start">
                     <div className="max-w-[85%] rounded-lg p-4 bg-red-950/20 border border-red-900/30">
@@ -377,7 +383,7 @@ export function AIAssistant() {
                     </div>
                   </div>
                 )}
-                
+
                 <div ref={messagesEndRef} />
               </>
             )}
@@ -396,8 +402,8 @@ export function AIAssistant() {
                 rows={2}
                 aria-label="Message CyberShadow AI"
               />
-              <Button 
-                onClick={handleSend} 
+              <Button
+                onClick={handleSend}
                 disabled={!inputValue.trim() || loading}
                 className="px-6 h-[50px] bg-purple-600 hover:bg-purple-500 text-white border-transparent"
               >

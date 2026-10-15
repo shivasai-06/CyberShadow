@@ -8,6 +8,7 @@ class AIResponse(BaseModel):
     success: bool
     response: str
     error: Optional[str] = None
+    error_code: Optional[str] = None
     source: Optional[str] = 'gemini'
 
 class AIAgentContext(BaseModel):
@@ -51,6 +52,7 @@ class AgentResponse(BaseModel):
     next_action: str
     reasoning: Optional[Reasoning] = None
     error: Optional[str] = None
+    error_code: Optional[str] = None
     source: Optional[str] = 'gemini'
 
 class DashboardAIRequest(BaseModel):
@@ -66,6 +68,7 @@ class DashboardAIResponse(BaseModel):
     defensiveInsight: str
     nextStep: str
     error: Optional[str] = None
+    error_code: Optional[str] = None
 
 class AssistantMessage(BaseModel):
     role: str
@@ -87,3 +90,4 @@ class AssistantResponse(BaseModel):
     success: bool
     message: Optional[AssistantMessage] = None
     error: Optional[str] = None
+    error_code: Optional[str] = None

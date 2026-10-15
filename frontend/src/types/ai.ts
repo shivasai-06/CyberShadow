@@ -89,4 +89,5 @@ export interface AssistantResponse {
   success: boolean;
   message?: AssistantMessage;
   error?: string;
+  error_code?: string;
 }
