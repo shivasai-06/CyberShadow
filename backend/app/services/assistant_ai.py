@@ -130,7 +130,7 @@ def run_assistant(request: AssistantRequest) -> AssistantResponse:
             error_code="RUNTIME_ERROR"
         )
     except Exception as e:
-        logger.error("Assistant unhandled exception: type=%s", type(e).__name__)
+        logger.exception("Assistant unhandled exception")
         return AssistantResponse(
             success=False,
             error="AI Assistant is temporarily unavailable. Your CyberShadow simulation data remains available.",
