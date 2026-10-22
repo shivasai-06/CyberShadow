@@ -83,9 +83,14 @@ def _get_client() -> genai.Client:
     api_key = settings.GEMINI_API_KEY or settings.LLM_API_KEY
     if not api_key:
         raise GeminiConfigError("AI Assistant is not configured. Please set GEMINI_API_KEY in the backend environment.")
+    http_options = (
+        types.HttpOptions(timeout=15000)
+        if hasattr(types, "HttpOptions")
+        else {"timeout": 15.0}
+    )
     return genai.Client(
         api_key=api_key,
-        http_options=types.HttpOptions(timeout=15000)
+        http_options=http_options
     )
 
 
